@@ -4,6 +4,7 @@ require('dotenv').config();
 const { Client, Intents } = require('discord.js');
 
 const axios = require('axios');
+const httpBuildQuery = require('http-build-query');
 
 // Create a new client instance
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS] });
@@ -61,6 +62,26 @@ async function recheckRolesAndNames() {
 	members.forEach(mb => {
 		changeRoleAndName(mb, temp);
 	});
+}
+
+async function callApi() {
+	const donnees = {
+		grant_type: 'client_credentials',
+		scopes: 'public',
+		client_id: process.env.SITE_ETU_CLIENT_ID,
+		client_secret: process.env.SITE_ETU_CLIENT_SECRET,
+	};
+	const requestToken = await axios.post(
+		`${process.env.ETU_BASE_URL}/api/oauth/token?${httpBuildQuery(donnees)}`,
+	);
+
+	const accessToken = requestToken.data.access_token.toString();
+	if (accessToken !== '') {
+		const request = {
+			access_token: accessToken,
+		};
+		'/oauth/discord/callback';
+	}
 }
 
 function changeRoleAndName(member, listStudents = null) {
