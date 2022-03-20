@@ -49,6 +49,7 @@
 		"spaced-comment": "error",
 		"yoda": "error",
         "new-cap": "off",
-        "no-unused-vars": "off"
+        "no-unused-vars": "off",
+		"max-depth": ["error", 6]
     }
 }

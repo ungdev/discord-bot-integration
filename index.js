@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 // Require the necessary discord.js classes
-const { Client, Intents } = require('discord.js');
+const { Client, Intents, MessageEmbed } = require('discord.js');
 
 // Load additional libraries
 const axios = require('axios');
@@ -12,6 +12,7 @@ const httpBuildQuery = require('http-build-query');
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS] });
 
 let guild;
+let factions;
 let bearer;
 let accessTokenEtu;
 
@@ -40,7 +41,7 @@ client.on('interactionCreate', async interaction => {
 	switch (commandName) {
 	case 'sync':
 		syncRolesAndNames();
-		await interaction.reply('Sync in progress!');
+		await interaction.reply({ content: 'Sync in progress!', ephemeral: true });
 		break;
 	default:
 		break;
@@ -54,8 +55,33 @@ client.on('guildMemberAdd', member => {
 	changeRoleAndName(member);
 });
 
+client.on('guildMemberUpdate', async (oldMember, newMember) => {
+	if (oldMember.roles.cache.size < newMember.roles.cache.size) {
+		const fetchedLogs = await oldMember.guild.fetchAuditLogs({
+			limit: 1,
+			type: 'MEMBER_ROLE_UPDATE',
+		});
+
+		const roleAddLog = fetchedLogs.entries.first();
+		if (!roleAddLog) return;
+		const { executor, target, changes } = roleAddLog;
+
+		console.log(`Role ${changes[0].new[0].name} added to <@${target.username}#${target.discriminator}> by <@${executor.username}#${executor.discriminator}>`);
+
+		if (changes[0].new[0].name === process.env.VOLUNTEER_ROLE) {
+			const tag = `${target.username}#${target.discriminator}`;
+
+			const listStudents = await callApi();
+
+			const userSite = listStudents.filter(o => o.discord === tag);
+
+			renameMember(newMember, userSite[0], process.env.VOLUNTEER_ROLE);
+		}
+	}
+});
+
 // Function to call the integration API and list each students in the website
-async function callApi() {
+async function callApi(teamId = null) {
 	if (accessTokenEtu === '' || bearer === undefined || (bearer.expires_at !== undefined && bearer.expires_at < Date.now()) || (bearer.access_token !== undefined && bearer.access_token === null)) {
 		let data = {
 			grant_type: 'client_credentials',
@@ -78,14 +104,35 @@ async function callApi() {
 		bearer = response.data;
 	}
 
-	const finalList = await axios.get(
-		`${process.env.INTE_BASE_URL}/api/student`,
+	if (factions === undefined || factions.length === 0) {
+		factions = (await axios.get(
+			`${process.env.INTE_BASE_URL}/api/factions`,
+			{
+				headers: { Authorization: `Bearer ${bearer.access_token}` },
+			},
+		)).data;
+	}
+
+	if (teamId === null) {
+		const finalList = await axios.get(
+			`${process.env.INTE_BASE_URL}/api/student`,
+			{
+				headers: { Authorization: `Bearer ${bearer.access_token}` },
+			},
+		);
+
+		return finalList.data;
+	}
+
+	const team = await axios.get(
+		`${process.env.INTE_BASE_URL}/api/team/${teamId}`,
 		{
 			headers: { Authorization: `Bearer ${bearer.access_token}` },
 		},
 	);
+	team.data.faction_name = factions.filter(f => f.id === team.data.faction_id)[0].name;
 
-	return finalList.data;
+	return team.data;
 }
 
 // Function to sync every roles and names of the guild
@@ -121,61 +168,89 @@ async function changeRoleAndName(member, listStudents = null) {
 							ADD ROLES
 				----------------------------- */
 
-				const rolesList = [process.env.NEWCOMER_ROLE, process.env.ADMIN_ROLE, process.env.CE_ROLE, process.env.ORGA_ROLE, process.env.VOLUNTEER_ROLE];
+				const rolesList = [process.env.NEWCOMER_ROLE, process.env.CE_ROLE, process.env.ORGA_ROLE];
 
-				let roleName;
+				let roleName = [];
 				if (u.is_newcomer === 1) {
-					roleName = process.env.NEWCOMER_ROLE;
-					// TODO: add some more roles including faction & team
+					roleName.push(process.env.NEWCOMER_ROLE);
+					roleName = roleName.concat(await addTeamRole(member, u.team_id));
 				}
-				else if (u.admin > 0) {
-					roleName = process.env.ADMIN_ROLE;
-				}
-				else if (u.ce === 1) {
-					roleName = process.env.CE_ROLE;
-					// TODO: add some more roles including faction & team
-				}
-				else if (u.orga === 1) {
-					roleName = process.env.ORGA_ROLE;
-				}
-				else if (u.volunteer === 1) {
-					roleName = process.env.VOLUNTEER_ROLE;
+				else {
+					if (u.ce === 1) {
+						roleName.push(process.env.CE_ROLE);
+						roleName = roleName.concat(await addTeamRole(member, u.team_id));
+					}
+
+					if (u.orga === 1) {roleName.push(process.env.ORGA_ROLE);}
 				}
 
 				// Remove old roles
 				rolesList.forEach(string => {
 					const role = guild.roles.cache.find(rol => rol.name === string);
-					member.roles.remove(role).catch(console.error);
+					if (role === undefined) {
+						console.log(`Role "${string}" doesn't exist in this guild!`);
+					}
+					else {
+						member.roles.remove(role).catch(console.error);
+					}
 				});
 
-				const role = guild.roles.cache.find(rol => rol.name === roleName);
-				member.roles.add(role).catch(console.error);
+				// Add new roles
+				roleName.forEach(string => {
+					const role = guild.roles.cache.find(rol => rol.name === string);
+					if (role === undefined) {
+						console.log(`Role "${string}" doesn't exist in this guild!`);
+					}
+					else {
+						member.roles.add(role).catch(console.error);
+					}
+				});
+
 
 				/* -----------------------------
 							RENAME
 				----------------------------- */
-
-				const firstName = u.first_name;
-				// Remove too long last name
-				const lastName = u.last_name.split(/[-\s]/)[0];
-				let name = firstName + ' ' + lastName;
-
-				// 32 characters is the maximum length of a discord name
-				const maxChar = 32 - 3 - roleName.length;
-
-				// If too long name then remove some chars
-				if (name > maxChar) {
-					name = name.substring(0, maxChar);
+				if (roleName[0] !== undefined) {
+					renameMember(member, u, roleName[0]);
 				}
-
-				member.setNickname(name + ' - ' + roleName);
 			}
 		}
 		else {
-			// TODO: the user didn't connect his discord to the website yet
-			console.log('Need to connect to the website');
+			const channel = await client.channels.fetch(process.env.UNKNOWN_CHANNEL_ID);
+
+			await channel.send({ content: `Salut <@${user.id}>, tu dois t'inscrire sur le site de l'Intégration (https://integration.utt.fr/) en renseignant ton tag discord pour obtenir tes rôles et avoir accès à tous les channels de discussion !` });
 		}
 	}
+}
+
+// Add faction and team role for newcomers and ce
+async function addTeamRole(member, teamId) {
+	if (teamId === null) {
+		return [];
+	}
+
+	const team = await callApi(teamId);
+	return [team.name, team.faction_name];
+}
+
+// Rename user to [Prénom NOM - Rôle]
+function renameMember(member, userSite, roleName) {
+	const firstName = userSite.first_name.toLowerCase().replace(/\w\S*/g, w => (w.replace(/^\w/, c => c.toUpperCase())));
+	// Remove too long last name
+	const lastName = userSite.last_name.toUpperCase().split(/[-\s]/)[0];
+	let name = firstName + ' ' + lastName;
+
+	// 32 characters is the maximum length of a discord name
+	const maxChar = 32 - 3 - roleName.length;
+
+	// If too long name then remove some chars
+	if (name > maxChar) {
+		name = name.substring(0, maxChar);
+	}
+
+	const roleSuffix = (roleName === null) ? '' : ' - ' + roleName;
+
+	member.setNickname(name + roleSuffix);
 }
 
 // Login to Discord with your client's token
