@@ -28,8 +28,6 @@ client.once('ready', async () => {
 		}],
 		status: 'online',
 	});
-
-	syncRolesAndNames();
 });
 
 // Watch for commands
@@ -142,12 +140,12 @@ async function syncRolesAndNames() {
 	const list = await callApi();
 
 	members.forEach(mb => {
-		changeRoleAndName(mb, list);
+		changeRoleAndName(mb, list, true);
 	});
 }
 
 // Function to change a role or a name
-async function changeRoleAndName(member, listStudents = null) {
+async function changeRoleAndName(member, listStudents = null, isSync = false) {
 	const { user } = member;
 	if (!user.bot) {
 		const tag = `${user.username}#${user.discriminator}`;
@@ -215,7 +213,7 @@ async function changeRoleAndName(member, listStudents = null) {
 				}
 			}
 		}
-		else {
+		else if (!isSync) {
 			const channel = await client.channels.fetch(process.env.UNKNOWN_CHANNEL_ID);
 
 			await channel.send({ content: `Salut <@${user.id}>, tu dois t'inscrire sur le site de l'Intégration (https://integration.utt.fr/) en renseignant ton tag discord pour obtenir tes rôles et avoir accès à tous les channels de discussion !` });
