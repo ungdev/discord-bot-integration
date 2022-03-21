@@ -150,6 +150,7 @@ async function changeRoleAndName(member, listStudents = null, isSync = false) {
 	if (!user.bot) {
 		const tag = `${user.username}#${user.discriminator}`;
 
+
 		if (listStudents === null) {
 			listStudents = await callApi();
 		}
@@ -214,10 +215,6 @@ async function changeRoleAndName(member, listStudents = null, isSync = false) {
 			}
 		}
 		else if (!isSync) {
-			// Const channel = await client.channels.fetch(process.env.UNKNOWN_CHANNEL_ID);
-
-			// await channel.send({ content: `Salut <@${user.id}>, tu dois t'inscrire sur le site de l'Intégration (https://integration.utt.fr/) en renseignant ton tag discord pour obtenir tes rôles et avoir accès à tous les channels de discussion !` });
-
 			member.send(`Salut <@${user.id}>, tu dois t'inscrire sur le site de l'Intégration (https://integration.utt.fr/) en renseignant ton tag discord pour obtenir tes rôles et avoir accès à tous les channels de discussion !`);
 		}
 	}
