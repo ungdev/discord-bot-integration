@@ -66,14 +66,14 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
 
 		console.log(`Role ${changes[0].new[0].name} added to <@${target.username}#${target.discriminator}> by <@${executor.username}#${executor.discriminator}>`);
 
-		if (changes[0].new[0].name === process.env.VOLUNTEER_ROLE) {
+		if (changes[0].new[0].name === process.env.VOLUNTEER_ROLE || changes[0].new[0].name === process.env.NEWCOMER_ROLE || changes[0].new[0].name === process.env.ORGA || changes[0].new[0].name === process.env.CE_ROLE) {
 			const tag = `${target.username}#${target.discriminator}`;
 
 			const listStudents = await callApi();
 
 			const userSite = listStudents.filter(o => o.discord === tag);
 
-			renameMember(newMember, userSite[0], process.env.VOLUNTEER_ROLE);
+			renameMember(newMember, userSite[0], changes[0].new[0].name);
 		}
 	}
 });
