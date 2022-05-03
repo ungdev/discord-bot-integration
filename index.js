@@ -39,7 +39,11 @@ client.on('interactionCreate', async interaction => {
 	switch (commandName) {
 	case 'sync':
 		await syncRolesAndNames();
-		await interaction.reply({ content: 'Sync in progress!' });
+		await interaction.reply({ content: 'Sync done!' });
+		break;
+	case 'reset-roles':
+		await resetRoles();
+		await interaction.reply({ content: 'Reset done!' });
 		break;
 	default:
 		break;
@@ -131,6 +135,34 @@ async function callApi(teamId = null) {
 	team.data.faction_name = factions.filter(f => f.id === team.data.faction_id)[0].name;
 
 	return team.data;
+}
+
+async function resetRoles() {
+	// Get all members of the guild
+	const members = await guild.members.fetch();
+	members.forEach(member => {
+		// Can't change owner's name
+		if (member.user.id !== guild.ownerId) {
+			/* -----------------------------
+					   REMOVE ROLES
+			----------------------------- */
+
+			const rolesList = [process.env.NEWCOMER_ROLE, process.env.CE_ROLE, process.env.ORGA_ROLE];
+
+			// Remove old roles
+			rolesList.forEach(string => {
+				const role = guild.roles.cache.find(rol => rol.name === string);
+				if (role === undefined) {
+					console.log(`Role "${string}" doesn't exist in this guild!`);
+				}
+				else {
+					member.roles.remove(role).catch(console.error);
+				}
+			});
+		}
+
+		// TODO: remove factions roles and names as well
+	});
 }
 
 // Function to sync every roles and names of the guild

@@ -9,6 +9,7 @@ const { Routes } = require('discord-api-types/v9');
 // List Commands
 const commands = [
 	new SlashCommandBuilder().setName('sync').setDescription('Sync automatically roles'),
+	new SlashCommandBuilder().setName('reset-roles').setDescription('Reset roles given by the bot'),
 ].map(command => command.toJSON());
 
 // Register Commands
