@@ -204,12 +204,12 @@ async function changeRoleAndName(member, listStudents = null, isSync = false) {
 				let roleName = [];
 				if (u.is_newcomer === 1) {
 					roleName.push(process.env.NEWCOMER_ROLE);
-					roleName = roleName.concat(await addTeamRole(member, u.team_id));
+					//roleName = roleName.concat(await addTeamRole(member, u.team_id));
 				}
 				else {
 					if (u.ce === 1) {
 						roleName.push(process.env.CE_ROLE);
-						roleName = roleName.concat(await addTeamRole(member, u.team_id));
+						//roleName = roleName.concat(await addTeamRole(member, u.team_id));
 					}
 
 					if (u.orga === 1) {roleName.push(process.env.ORGA_ROLE);}
