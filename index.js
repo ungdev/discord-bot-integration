@@ -13,6 +13,7 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 
 let guild;
 let factions;
+let teams;
 let bearer;
 let accessTokenEtu;
 
@@ -44,6 +45,11 @@ client.on('interactionCreate', async interaction => {
 	case 'reset-roles':
 		await resetRoles();
 		await interaction.reply({ content: 'Reset done!' });
+		break;
+	case 'create-roles-channels':
+		await createRoles();
+		// Await createChannels();
+		await interaction.reply({ content: 'Creation done!' });
 		break;
 	default:
 		break;
@@ -115,6 +121,15 @@ async function callApi(teamId = null) {
 		)).data;
 	}
 
+	if (teams === undefined || teams.length === 0) {
+		teams = (await axios.get(
+			`${process.env.INTE_BASE_URL}/api/team`,
+			{
+				headers: { Authorization: `Bearer ${bearer.access_token}` },
+			},
+		)).data;
+	}
+
 	if (teamId === null) {
 		const finalList = await axios.get(
 			`${process.env.INTE_BASE_URL}/api/student`,
@@ -171,8 +186,8 @@ async function syncRolesAndNames() {
 
 	const list = await callApi();
 
-	members.forEach(mb => {
-		changeRoleAndName(mb, list, true);
+	await members.forEach(async mb => {
+		await changeRoleAndName(mb, list, true);
 	});
 }
 
@@ -201,39 +216,39 @@ async function changeRoleAndName(member, listStudents = null, isSync = false) {
 
 				const rolesList = [process.env.NEWCOMER_ROLE, process.env.CE_ROLE, process.env.ORGA_ROLE];
 
-				let roleName = [];
+				const roleName = [];
 				if (u.is_newcomer === 1) {
 					roleName.push(process.env.NEWCOMER_ROLE);
-					//roleName = roleName.concat(await addTeamRole(member, u.team_id));
+					// RoleName = roleName.concat(await addTeamRole(member, u.team_id));
 				}
 				else {
 					if (u.ce === 1) {
 						roleName.push(process.env.CE_ROLE);
-						//roleName = roleName.concat(await addTeamRole(member, u.team_id));
+						// RoleName = roleName.concat(await addTeamRole(member, u.team_id));
 					}
 
 					if (u.orga === 1) {roleName.push(process.env.ORGA_ROLE);}
 				}
 
 				// Remove old roles
-				rolesList.forEach(string => {
+				await rolesList.forEach(async string => {
 					const role = guild.roles.cache.find(rol => rol.name === string);
 					if (role === undefined) {
 						console.log(`Role "${string}" doesn't exist in this guild!`);
 					}
 					else {
-						member.roles.remove(role).catch(console.error);
+						await member.roles.remove(role).catch(console.error);
 					}
 				});
 
 				// Add new roles
-				roleName.forEach(string => {
+				await roleName.forEach(async string => {
 					const role = guild.roles.cache.find(rol => rol.name === string);
 					if (role === undefined) {
 						console.log(`Role "${string}" doesn't exist in this guild!`);
 					}
 					else {
-						member.roles.add(role).catch(console.error);
+						await member.roles.add(role).catch(console.error);
 					}
 				});
 
@@ -262,8 +277,8 @@ async function addTeamRole(member, teamId) {
 	return [team.name, team.faction_name];
 }
 
-// Rename user to [Prénom NOM - Rôle]
-function renameMember(member, userSite, roleName) {
+// Rename user to [Prénom NOM - Role]
+async function renameMember(member, userSite, roleName) {
 	const firstName = userSite.first_name.toLowerCase().replace(/\w\S*/g, w => (w.replace(/^\w/, c => c.toUpperCase())));
 	// Remove too long last name
 	const lastName = userSite.last_name.toUpperCase().split(/[-\s]/)[0];
@@ -279,8 +294,39 @@ function renameMember(member, userSite, roleName) {
 
 	const roleSuffix = (roleName === null) ? '' : ' - ' + roleName;
 
-	member.setNickname(name + roleSuffix);
+	await member.setNickname(name + roleSuffix);
 }
+
+// Create roles for the factions and the teams
+async function createRoles() {
+	await callApi();
+	await factions.forEach(async faction => {
+		await addRole(faction.name, true);
+	});
+	await teams.forEach(async team => {
+		if (team.name !== null) {
+			await addRole(team.name, false);
+		}
+	});
+}
+
+
+// Create role
+async function addRole(roleName, isFaction) {
+	const role = await guild.roles.create({
+		name: roleName,
+		color: '#000000',
+		permissions: [
+			'MANAGE_ROLES',
+		],
+		mentionable: true,
+		hoist: true,
+		position: 0,
+	})
+		.then(created => console.log(`Created role ${created.name}`))
+		.catch(console.error);
+}
+
 
 // Login to Discord with your client's token
 client.login(process.env.BOT_TOKEN);
