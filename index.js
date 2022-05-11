@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 // Require the necessary discord.js classes
-const { Client, Intents, MessageEmbed } = require('discord.js');
+const { Client, Intents, Permissions } = require('discord.js');
 
 // Load additional libraries
 const axios = require('axios');
@@ -39,17 +39,19 @@ client.on('interactionCreate', async interaction => {
 
 	switch (commandName) {
 	case 'sync':
+		await interaction.reply({ content: 'Sync in progress!' });
 		await syncRolesAndNames();
-		await interaction.reply({ content: 'Sync done!' });
+		console.log('Sync done!');
 		break;
 	case 'reset-roles':
+		await interaction.reply({ content: 'Reset in progress!' });
 		await resetRoles();
-		await interaction.reply({ content: 'Reset done!' });
+		console.log('Reset done!');
 		break;
 	case 'create-roles-channels':
-		await createRoles();
-		// Await createChannels();
-		await interaction.reply({ content: 'Creation done!' });
+		await interaction.reply({ content: 'Creation in progress!' });
+		await createRolesAndChannels();
+		console.log('Creation done!');
 		break;
 	default:
 		break;
@@ -189,6 +191,8 @@ async function syncRolesAndNames() {
 	await members.forEach(async mb => {
 		await changeRoleAndName(mb, list, true);
 	});
+
+	console.log('Finished syncRolesAndNames');
 }
 
 // Function to change a role or a name
@@ -298,30 +302,62 @@ async function renameMember(member, userSite, roleName) {
 }
 
 // Create roles for the factions and the teams
-async function createRoles() {
+async function createRolesAndChannels() {
 	await callApi();
+	const cat = [];
 	await factions.forEach(async faction => {
 		await addRole(faction.name, true);
+		cat.push(await addCategory(faction.name));
 	});
 	await teams.forEach(async team => {
-		if (team.name !== null) {
+		if (team.name !== undefined && team.name !== null && team.name !== '') {
 			await addRole(team.name, false);
+			await addChannel(team, cat);
 		}
 	});
 }
 
+// Create a category
+async function addCategory(name) {
+	const category = await guild.channels.create(name, {
+		type: 'GUILD_CATEGORY',
+		permissions: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGES', 'MANAGE_MESSAGES', 'MANAGE_ROLES', 'MANAGE_CHANNELS'],
+		position: 0,
+	});
+	// TODO: save category id list to reverse channels creation
+	return category;
+}
+
+// Create a channel and add it to the category
+async function addChannel(team, cat) {
+	const channel = await guild.channels.create(team.name, {
+		type: 'text',
+		permissions: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGES', 'MANAGE_MESSAGES', 'MANAGE_ROLES', 'MANAGE_CHANNELS'],
+		position: 0,
+	});
+
+	await channel.setParent(cat.find(c => c.name.toLowerCase() === team.faction.name.toLowerCase()).id);
+
+	// Modify permissions for the team role and disable view form everyone
+	await channel.permissionOverwrites.edit(guild.roles.cache.find(rol => rol.name === process.env.ORGA_ROLE).id, {
+		VIEW_CHANNEL: true,
+	});
+	await channel.permissionOverwrites.edit(guild.roles.cache.find(rol => rol.name.toLowerCase() === team.name.toLowerCase()).id, {
+		VIEW_CHANNEL: true,
+	});
+	await channel.permissionOverwrites.edit(guild.id, {
+		VIEW_CHANNEL: false,
+	});
+}
 
 // Create role
 async function addRole(roleName, isFaction) {
 	const role = await guild.roles.create({
 		name: roleName,
 		color: '#000000',
-		permissions: [
-			'MANAGE_ROLES',
-		],
 		mentionable: true,
 		hoist: true,
-		position: 0,
+		position: 3,
 	})
 		.then(created => console.log(`Created role ${created.name}`))
 		.catch(console.error);
