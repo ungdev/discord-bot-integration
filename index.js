@@ -13,7 +13,7 @@ const app = express();
 const port = 3000;
 
 app.get('/', (req, res) => {
-	res.send('Status: OK');
+	res.send('OK');
 });
 
 app.listen(port);
@@ -21,17 +21,19 @@ app.listen(port);
 // Create a new client instance
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS] });
 
-let guild;
-let factions;
-let teams;
-let bearer;
-let accessTokenEtu;
+let data = {
+	bearer: null,
+	bearerConfig: null,
+	guild: null,
+	factions: null,
+	teams: null,
+};
 
 // When the client is ready, run this code (only once)
 client.once('ready', async () => {
 	console.log('Ready!');
 
-	guild = client.guilds.cache.get(process.env.GUILD_ID);
+	data.guild = client.guilds.cache.get(process.env.GUILD_ID);
 
 	client.user.setPresence({
 		activities: [{
@@ -44,7 +46,7 @@ client.once('ready', async () => {
 // Watch for commands
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
-
+	// TODO : check guild id to avoid commands from other guilds
 	const { commandName } = interaction;
 
 	switch (commandName) {
@@ -102,74 +104,54 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
 
 // Function to call the integration API and list each students in the website
 async function callApi(teamId = null) {
-	if (accessTokenEtu === '' || bearer === undefined || (bearer.expires_at !== undefined && bearer.expires_at < Date.now()) || (bearer.access_token !== undefined && bearer.access_token === null)) {
-		let data = {
+	if (data.bearer === null || (data.bearer.expires_at !== undefined && data.bearer.expires_at < Date.now()) || (data.bearer.access_token !== undefined && data.bearer.access_token === null)) {
+		const dataConfig = {
 			grant_type: 'client_credentials',
 			scopes: 'public',
 			client_id: process.env.SITE_ETU_CLIENT_ID,
 			client_secret: process.env.SITE_ETU_CLIENT_SECRET,
 		};
 		const requestToken = await axios.post(
-			`${process.env.ETU_BASE_URL}/api/oauth/token?${httpBuildQuery(data)}`,
+			`${process.env.ETU_BASE_URL}/api/oauth/token?${httpBuildQuery(dataConfig)}`,
 		);
-		accessTokenEtu = requestToken.data.access_token.toString();
 
 		data = {
-			access_token: accessTokenEtu,
+			access_token: requestToken.data.access_token.toString(),
 		};
 
 		const response = await axios.post(
 			`${process.env.INTE_BASE_URL}/api/oauth/discord/callback?${httpBuildQuery(data)}`,
 		);
-		bearer = response.data;
+		data.bearer = response.data;
+		data.bearerConfig = {
+			headers: { Authorization: `Bearer ${data.bearer.access_token}` },
+		};
 	}
 
-	if (factions === undefined || factions.length === 0) {
-		factions = (await axios.get(
-			`${process.env.INTE_BASE_URL}/api/factions`,
-			{
-				headers: { Authorization: `Bearer ${bearer.access_token}` },
-			},
-		)).data;
+	if (data.factions === undefined || data.factions.length === 0) {
+		data.factions = (await axios.get(`${process.env.INTE_BASE_URL}/api/factions`, data.bearerConfig)).data;
 	}
 
-	if (teams === undefined || teams.length === 0) {
-		teams = (await axios.get(
-			`${process.env.INTE_BASE_URL}/api/team`,
-			{
-				headers: { Authorization: `Bearer ${bearer.access_token}` },
-			},
-		)).data;
+	if (data.teams === undefined || data.teams.length === 0) {
+		data.teams = (await axios.get(`${process.env.INTE_BASE_URL}/api/team`, data.bearerConfig)).data;
 	}
 
 	if (teamId === null) {
-		const finalList = await axios.get(
-			`${process.env.INTE_BASE_URL}/api/student`,
-			{
-				headers: { Authorization: `Bearer ${bearer.access_token}` },
-			},
-		);
-
-		return finalList.data;
+		return axios.get(`${process.env.INTE_BASE_URL}/api/student`, data.bearerConfig).data;
 	}
 
-	const team = await axios.get(
-		`${process.env.INTE_BASE_URL}/api/team/${teamId}`,
-		{
-			headers: { Authorization: `Bearer ${bearer.access_token}` },
-		},
-	);
-	team.data.faction_name = factions.filter(f => f.id === team.data.faction_id)[0].name;
+	const team = await axios.get(`${process.env.INTE_BASE_URL}/api/team/${teamId}`, data.bearerConfig);
+	team.data.faction_name = data.factions.filter(f => f.id === team.data.faction_id)[0].name;
 
 	return team.data;
 }
 
 async function resetRoles() {
 	// Get all members of the guild
-	const members = await guild.members.fetch();
+	const members = await data.guild.members.fetch();
 	members.forEach(member => {
 		// Can't change owner's name
-		if (member.user.id !== guild.ownerId) {
+		if (member.user.id !== data.guild.ownerId) {
 			/* -----------------------------
 					   REMOVE ROLES
 			----------------------------- */
@@ -178,7 +160,7 @@ async function resetRoles() {
 
 			// Remove old roles
 			rolesList.forEach(string => {
-				const role = guild.roles.cache.find(rol => rol.name === string);
+				const role = data.guild.roles.cache.find(rol => rol.name === string);
 				if (role === undefined) {
 					console.log(`Role "${string}" doesn't exist in this guild!`);
 				}
@@ -194,7 +176,7 @@ async function resetRoles() {
 
 // Function to sync every roles and names of the guild
 async function syncRolesAndNames() {
-	const members = await guild.members.fetch();
+	const members = await data.guild.members.fetch();
 
 	const list = await callApi();
 
@@ -223,7 +205,7 @@ async function changeRoleAndName(member, listStudents = null, isSync = false) {
 			const u = userSite[0];
 
 			// Can't change owner's name
-			if (member.user.id !== guild.ownerId) {
+			if (member.user.id !== data.guild.ownerId) {
 				/* -----------------------------
 							ADD ROLES
 				----------------------------- */
@@ -246,7 +228,7 @@ async function changeRoleAndName(member, listStudents = null, isSync = false) {
 
 				// Remove old roles
 				await rolesList.forEach(async string => {
-					const role = guild.roles.cache.find(rol => rol.name === string);
+					const role = data.guild.roles.cache.find(rol => rol.name === string);
 					if (role === undefined) {
 						console.log(`Role "${string}" doesn't exist in this guild!`);
 					}
@@ -257,7 +239,7 @@ async function changeRoleAndName(member, listStudents = null, isSync = false) {
 
 				// Add new roles
 				await roleName.forEach(async string => {
-					const role = guild.roles.cache.find(rol => rol.name === string);
+					const role = data.guild.roles.cache.find(rol => rol.name === string);
 					if (role === undefined) {
 						console.log(`Role "${string}" doesn't exist in this guild!`);
 					}
@@ -315,11 +297,11 @@ async function renameMember(member, userSite, roleName) {
 async function createRolesAndChannels() {
 	await callApi();
 	const cat = [];
-	await factions.forEach(async faction => {
+	await data.factions.forEach(async faction => {
 		await addRole(faction.name, true);
 		cat.push(await addCategory(faction.name));
 	});
-	await teams.forEach(async team => {
+	await data.teams.forEach(async team => {
 		if (team.name !== undefined && team.name !== null && team.name !== '') {
 			await addRole(team.name, false);
 			await addChannel(team, cat);
@@ -329,7 +311,7 @@ async function createRolesAndChannels() {
 
 // Create a category
 async function addCategory(name) {
-	const category = await guild.channels.create(name, {
+	const category = await data.guild.channels.create(name, {
 		type: 'GUILD_CATEGORY',
 		permissions: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGES', 'MANAGE_MESSAGES', 'MANAGE_ROLES', 'MANAGE_CHANNELS'],
 		position: 0,
@@ -340,7 +322,7 @@ async function addCategory(name) {
 
 // Create a channel and add it to the category
 async function addChannel(team, cat) {
-	const channel = await guild.channels.create(team.name, {
+	const channel = await data.guild.channels.create(team.name, {
 		type: 'text',
 		permissions: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGES', 'MANAGE_MESSAGES', 'MANAGE_ROLES', 'MANAGE_CHANNELS'],
 		position: 0,
@@ -349,20 +331,20 @@ async function addChannel(team, cat) {
 	await channel.setParent(cat.find(c => c.name.toLowerCase() === team.faction.name.toLowerCase()).id);
 
 	// Modify permissions for the team role and disable view form everyone
-	await channel.permissionOverwrites.edit(guild.roles.cache.find(rol => rol.name === process.env.ORGA_ROLE).id, {
+	await channel.permissionOverwrites.edit(data.guild.roles.cache.find(rol => rol.name === process.env.ORGA_ROLE).id, {
 		VIEW_CHANNEL: true,
 	});
-	await channel.permissionOverwrites.edit(guild.roles.cache.find(rol => rol.name.toLowerCase() === team.name.toLowerCase()).id, {
+	await channel.permissionOverwrites.edit(data.guild.roles.cache.find(rol => rol.name.toLowerCase() === team.name.toLowerCase()).id, {
 		VIEW_CHANNEL: true,
 	});
-	await channel.permissionOverwrites.edit(guild.id, {
+	await channel.permissionOverwrites.edit(data.guild.id, {
 		VIEW_CHANNEL: false,
 	});
 }
 
 // Create role
 async function addRole(roleName, isFaction) {
-	const role = await guild.roles.create({
+	const role = await data.guild.roles.create({
 		name: roleName,
 		color: '#000000',
 		mentionable: true,
