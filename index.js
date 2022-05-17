@@ -8,6 +8,16 @@ const { Client, Intents, Permissions } = require('discord.js');
 const axios = require('axios');
 const httpBuildQuery = require('http-build-query');
 
+const express = require('express');
+const app = express();
+const port = 3000;
+
+app.get('/', (req, res) => {
+	res.send('Status: OK');
+});
+
+app.listen(port);
+
 // Create a new client instance
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS] });
 
