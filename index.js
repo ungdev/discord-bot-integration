@@ -55,7 +55,7 @@ client.on('interactionCreate', async interaction => {
 	switch (commandName) {
 	case 'sync':
 		await interaction.reply('Sync in progress...');
-		await syncRolesAndNames();
+		// await syncRolesAndNames();
 		await interaction.followUp({ content: 'Sync done!' });
 		console.log('Sync done!');
 		break;
