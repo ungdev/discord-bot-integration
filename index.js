@@ -55,7 +55,7 @@ client.on('interactionCreate', async interaction => {
 	switch (commandName) {
 	case 'sync':
 		await interaction.reply('Sync in progress...');
-		// await syncRolesAndNames();
+		await syncRolesAndNames();
 		await interaction.followUp({ content: 'Sync done!' });
 		console.log('Sync done!');
 		break;
@@ -96,7 +96,7 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
 
 		console.log(`Role ${changes[0].new[0].name} added to <@${target.username}#${target.discriminator}> by <@${executor.username}#${executor.discriminator}>`);
 
-		if (changes[0].new[0].id === data.rolesList[0].id || changes[0].new[0].id === data.rolesList[1].id || changes[0].new[0].id === data.rolesList[2].id) {
+		if ((changes[0].new[0].id === data.rolesList[0].id || changes[0].new[0].id === data.rolesList[1].id || changes[0].new[0].id === data.rolesList[2].id) && executor.id !== process.env.CLIENT_ID) {
 			const tag = `${target.username}#${target.discriminator}`;
 
 			const listStudents = await callApi();
@@ -184,9 +184,9 @@ async function syncRolesAndNames() {
 
 	const listStudents = await callApi();
 
-	for (const mb of members) {
-		await changeRoleAndName(mb[1], listStudents, true);
-	}
+	await Promise.all(members.map(async mb => {
+		await changeRoleAndName(mb, listStudents, true);
+	}));
 
 	console.log('Finished syncRolesAndNames');
 }
@@ -264,9 +264,13 @@ async function addTeamRole(member, teamId) {
 
 // Rename user to [Prénom NOM - Role]
 async function renameMember(member, userSite, roleName) {
-	const firstName = userSite.first_name.toLowerCase().replace(/\w\S*/g, w => (w.replace(/^\w/, c => c.toUpperCase())));
+	let firstName = userSite.first_name.toLowerCase().replace(/\w\S*/g, w => (w.replace(/^\w/, c => c.toUpperCase())));
 	// Remove too long last name
 	const lastName = userSite.last_name.toUpperCase().split(/[-\s]/)[0];
+
+	// Je veux bien dev le bot de l'inté par contre on respecte mon prénom, merci
+	if (firstName === 'Noe') firstName = 'Noé';
+
 	let name = firstName + ' ' + lastName;
 
 	// 32 characters is the maximum length of a discord name
