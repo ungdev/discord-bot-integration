@@ -21,7 +21,7 @@ app.listen(port);
 // Create a new client instance
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS] });
 
-let data = {
+const data = {
 	bearer: null,
 	bearerConfig: null,
 	guild: null,
@@ -54,18 +54,18 @@ client.on('interactionCreate', async interaction => {
 
 	switch (commandName) {
 	case 'sync':
-		await interaction.reply({ content: 'Sync in progress!' });
 		await syncRolesAndNames();
+		await interaction.reply({ content: 'Sync done!' });
 		console.log('Sync done!');
 		break;
 	case 'reset-roles':
-		await interaction.reply({ content: 'Reset in progress!' });
 		await resetRoles();
+		await interaction.reply({ content: 'Reset done!' });
 		console.log('Reset done!');
 		break;
 	case 'create-roles-channels':
-		await interaction.reply({ content: 'Creation in progress!' });
 		await createRolesAndChannels();
+		await interaction.reply({ content: 'Creation done!' });
 		console.log('Creation done!');
 		break;
 	default:
@@ -93,7 +93,7 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
 
 		console.log(`Role ${changes[0].new[0].name} added to <@${target.username}#${target.discriminator}> by <@${executor.username}#${executor.discriminator}>`);
 
-		if (changes[0].new[0].name === process.env.VOLUNTEER_ROLE || changes[0].new[0].name === process.env.NEWCOMER_ROLE || changes[0].new[0].name === process.env.ORGA || changes[0].new[0].name === process.env.CE_ROLE) {
+		if (changes[0].new[0].id === data.rolesList[0].id || changes[0].new[0].id === data.rolesList[1].id || changes[0].new[0].id === data.rolesList[2].id) {
 			const tag = `${target.username}#${target.discriminator}`;
 
 			const listStudents = await callApi();
@@ -108,22 +108,19 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
 // Function to call the integration API and list each students in the website
 async function callApi(teamId = null) {
 	if (data.bearer === null || (data.bearer.expires_at !== undefined && data.bearer.expires_at < Date.now()) || (data.bearer.access_token !== undefined && data.bearer.access_token === null)) {
-		const dataConfig = {
-			grant_type: 'client_credentials',
-			scopes: 'public',
-			client_id: process.env.SITE_ETU_CLIENT_ID,
-			client_secret: process.env.SITE_ETU_CLIENT_SECRET,
-		};
 		const requestToken = await axios.post(
-			`${process.env.ETU_BASE_URL}/api/oauth/token?${httpBuildQuery(dataConfig)}`,
+			`${process.env.ETU_BASE_URL}/api/oauth/token?${httpBuildQuery({
+				grant_type: 'client_credentials',
+				scopes: 'public',
+				client_id: process.env.SITE_ETU_CLIENT_ID,
+				client_secret: process.env.SITE_ETU_CLIENT_SECRET,
+			})}`,
 		);
 
-		data = {
-			access_token: requestToken.data.access_token.toString(),
-		};
-
 		const response = await axios.post(
-			`${process.env.INTE_BASE_URL}/api/oauth/discord/callback?${httpBuildQuery(data)}`,
+			`${process.env.INTE_BASE_URL}/api/oauth/discord/callback?${httpBuildQuery({
+				access_token: requestToken.data.access_token.toString(),
+			})}`,
 		);
 		data.bearer = response.data;
 		data.bearerConfig = {
@@ -131,16 +128,17 @@ async function callApi(teamId = null) {
 		};
 	}
 
-	if (data.factions === undefined || data.factions.length === 0) {
+	if (data.factions === null || data.factions.length === 0) {
 		data.factions = (await axios.get(`${process.env.INTE_BASE_URL}/api/factions`, data.bearerConfig)).data;
 	}
 
-	if (data.teams === undefined || data.teams.length === 0) {
+	if (data.teams === null || data.teams.length === 0) {
 		data.teams = (await axios.get(`${process.env.INTE_BASE_URL}/api/team`, data.bearerConfig)).data;
 	}
 
 	if (teamId === null) {
-		return axios.get(`${process.env.INTE_BASE_URL}/api/student`, data.bearerConfig).data;
+		const request = await axios.get(`${process.env.INTE_BASE_URL}/api/student`, data.bearerConfig);
+		return request.data;
 	}
 
 	const team = await axios.get(`${process.env.INTE_BASE_URL}/api/team/${teamId}`, data.bearerConfig);
@@ -181,11 +179,11 @@ async function resetRoles() {
 async function syncRolesAndNames() {
 	const members = await data.guild.members.fetch();
 
-	const list = await callApi();
+	const listStudents = await callApi();
 
-	await members.forEach(async mb => {
-		await changeRoleAndName(mb, list, true);
-	});
+	for (const mb of members) {
+		await changeRoleAndName(mb[1], listStudents, true);
+	}
 
 	console.log('Finished syncRolesAndNames');
 }
@@ -238,7 +236,7 @@ async function changeRoleAndName(member, listStudents = null, isSync = false) {
 							RENAME
 				----------------------------- */
 				if (rolesToAdd[0] !== undefined) {
-					renameMember(member, u, rolesToAdd[0]);
+					await renameMember(member, u, rolesToAdd[0].name);
 				}
 			}
 		}
