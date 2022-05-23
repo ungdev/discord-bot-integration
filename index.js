@@ -54,8 +54,8 @@ client.on('interactionCreate', async interaction => {
 
 	switch (commandName) {
 	case 'sync':
-		await syncRolesAndNames();
-		await interaction.reply({ content: 'Sync done!' });
+		// await syncRolesAndNames();
+		// await interaction.reply({ content: 'Sync done!' });
 		console.log('Sync done!');
 		break;
 	case 'reset-roles':
