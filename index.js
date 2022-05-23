@@ -27,6 +27,7 @@ let data = {
 	guild: null,
 	factions: null,
 	teams: null,
+	rolesList: null,
 };
 
 // When the client is ready, run this code (only once)
@@ -41,6 +42,8 @@ client.once('ready', async () => {
 		}],
 		status: 'online',
 	});
+
+	data.rolesList = [data.guild.roles.cache.find(rol => rol.name === process.env.NEWCOMER_ROLE), data.guild.roles.cache.find(rol => rol.name === process.env.CE_ROLE), data.guild.roles.cache.find(rol => rol.name === process.env.ORGA_ROLE)];
 });
 
 // Watch for commands
@@ -193,7 +196,6 @@ async function changeRoleAndName(member, listStudents = null, isSync = false) {
 	if (!user.bot) {
 		const tag = `${user.username}#${user.discriminator}`;
 
-
 		if (listStudents === null) {
 			listStudents = await callApi();
 		}
@@ -210,55 +212,41 @@ async function changeRoleAndName(member, listStudents = null, isSync = false) {
 							ADD ROLES
 				----------------------------- */
 
-				const rolesList = [process.env.NEWCOMER_ROLE, process.env.CE_ROLE, process.env.ORGA_ROLE];
-
-				const roleName = [];
+				const rolesToAdd = [];
 				if (u.is_newcomer === 1) {
-					roleName.push(process.env.NEWCOMER_ROLE);
-					// RoleName = roleName.concat(await addTeamRole(member, u.team_id));
+					rolesToAdd.push(data.rolesList[0]);
+					// RolesToAdd = rolesToAdd.concat(await addTeamRole(member, u.team_id));
 				}
 				else {
 					if (u.ce === 1) {
-						roleName.push(process.env.CE_ROLE);
-						// RoleName = roleName.concat(await addTeamRole(member, u.team_id));
+						rolesToAdd.push(data.rolesList[1]);
+						// RolesToAdd = rolesToAdd.concat(await addTeamRole(member, u.team_id));
 					}
 
-					if (u.orga === 1) {roleName.push(process.env.ORGA_ROLE);}
+					if (u.orga === 1) {rolesToAdd.push(data.rolesList[2]);}
 				}
 
+
 				// Remove old roles
-				await rolesList.forEach(async string => {
-					const role = data.guild.roles.cache.find(rol => rol.name === string);
-					if (role === undefined) {
-						console.log(`Role "${string}" doesn't exist in this guild!`);
-					}
-					else {
-						await member.roles.remove(role).catch(console.error);
-					}
-				});
+				await member.roles.remove(data.rolesList).catch(console.error);
 
 				// Add new roles
-				await roleName.forEach(async string => {
-					const role = data.guild.roles.cache.find(rol => rol.name === string);
-					if (role === undefined) {
-						console.log(`Role "${string}" doesn't exist in this guild!`);
-					}
-					else {
-						await member.roles.add(role).catch(console.error);
-					}
-				});
+				await member.roles.add(rolesToAdd).catch(console.error);
 
 
 				/* -----------------------------
 							RENAME
 				----------------------------- */
-				if (roleName[0] !== undefined) {
-					renameMember(member, u, roleName[0]);
+				if (rolesToAdd[0] !== undefined) {
+					renameMember(member, u, rolesToAdd[0]);
 				}
 			}
 		}
 		else if (!isSync) {
 			member.send(`Salut <@${user.id}>, tu dois t'inscrire sur le site de l'Intégration (https://integration.utt.fr/) en renseignant ton tag discord pour obtenir tes rôles et avoir accès à tous les channels de discussion !`);
+		}
+		else {
+			console.log(`${tag} is not in the list`);
 		}
 	}
 }
