@@ -1,6 +1,6 @@
 {
   "name": "discord-integration-utt",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Discord BOT of the UTT integration",
   "main": "index.js",
   "scripts": {
