@@ -56,19 +56,19 @@ client.on('interactionCreate', async interaction => {
 	case 'sync':
 		await interaction.reply('Sync in progress...');
 		await syncRolesAndNames();
-		await interaction.editReply({ content: 'Sync done!' });
+		await interaction.followUp({ content: 'Sync done!' });
 		console.log('Sync done!');
 		break;
 	case 'reset-roles':
 		await interaction.reply('Reset in progress...');
 		await resetRoles();
-		await interaction.editReply({ content: 'Reset done!' });
+		await interaction.followUp({ content: 'Reset done!' });
 		console.log('Reset done!');
 		break;
 	case 'create-roles-channels':
 		await interaction.reply('Creation in progress...');
 		await createRolesAndChannels();
-		await interaction.editReply({ content: 'Creation done!' });
+		await interaction.followUp({ content: 'Creation done!' });
 		console.log('Creation done!');
 		break;
 	default:
