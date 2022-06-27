@@ -49,30 +49,31 @@ client.once('ready', async () => {
 // Watch for commands
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
-	// TODO : check guild id to avoid commands from other guilds
-	const { commandName } = interaction;
+	if (interaction.guild.id === data.guild.id) {
+		const { commandName } = interaction;
 
-	switch (commandName) {
-	case 'sync':
-		await interaction.reply('Sync in progress...');
-		await syncRolesAndNames();
-		await interaction.followUp({ content: 'Sync done!' });
-		console.log('Sync done!');
-		break;
-	case 'reset-roles':
-		await interaction.reply('Reset in progress...');
-		await resetRoles();
-		await interaction.followUp({ content: 'Reset done!' });
-		console.log('Reset done!');
-		break;
-	case 'create-roles-channels':
-		await interaction.reply('Creation in progress...');
-		await createRolesAndChannels();
-		await interaction.followUp({ content: 'Creation done!' });
-		console.log('Creation done!');
-		break;
-	default:
-		break;
+		switch (commandName) {
+		case 'sync':
+			await interaction.reply('Sync in progress...');
+			await syncRolesAndNames();
+			await interaction.followUp({ content: 'Sync done!' });
+			console.log('Sync done!');
+			break;
+		case 'reset-roles':
+			await interaction.reply('Reset in progress...');
+			await resetRoles();
+			await interaction.followUp({ content: 'Reset done!' });
+			console.log('Reset done!');
+			break;
+		case 'create-roles-channels':
+			await interaction.reply('Creation in progress...');
+			await createRolesAndChannels();
+			await interaction.followUp({ content: 'Creation done!' });
+			console.log('Creation done!');
+			break;
+		default:
+			break;
+		}
 	}
 });
 
@@ -216,12 +217,12 @@ async function changeRoleAndName(member, listStudents = null, isSync = false) {
 				const rolesToAdd = [];
 				if (u.is_newcomer === 1) {
 					rolesToAdd.push(data.rolesList[0]);
-					// RolesToAdd = rolesToAdd.concat(await addTeamRole(member, u.team_id));
+					// RolesToAdd = rolesToAdd.concat(await addTeamRole(u.team_id));
 				}
 				else {
 					if (u.ce === 1) {
 						rolesToAdd.push(data.rolesList[1]);
-						// RolesToAdd = rolesToAdd.concat(await addTeamRole(member, u.team_id));
+						// RolesToAdd = rolesToAdd.concat(await addTeamRole(u.team_id));
 					}
 
 					if (u.orga === 1) {rolesToAdd.push(data.rolesList[2]);}
