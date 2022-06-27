@@ -12,8 +12,14 @@ const express = require('express');
 const app = express();
 const port = 3000;
 
+const JSONdb = require('simple-json-db');
+
 app.get('/', (req, res) => {
 	res.send('OK !');
+});
+
+app.get('/db', (req, res) => {
+	res.send(JSON.stringify(db.JSON()));
 });
 
 app.listen(port);
@@ -28,7 +34,11 @@ const data = {
 	factions: null,
 	teams: null,
 	rolesList: null,
+	rolesCreatedIds: null,
+	factionsCategoryIds: null,
 };
+
+const db = new JSONdb('storage.json');
 
 // When the client is ready, run this code (only once)
 client.once('ready', async () => {
@@ -44,6 +54,8 @@ client.once('ready', async () => {
 	});
 
 	data.rolesList = [data.guild.roles.cache.find(rol => rol.name === process.env.NEWCOMER_ROLE), data.guild.roles.cache.find(rol => rol.name === process.env.CE_ROLE), data.guild.roles.cache.find(rol => rol.name === process.env.ORGA_ROLE)];
+	data.rolesCreatedIds = db.has('roles') ? db.get('roles') : [];
+	data.factionsCategoryIds = db.has('factions') ? db.get('factions') : [];
 });
 
 // Watch for commands
@@ -297,6 +309,7 @@ async function createRolesAndChannels() {
 	});
 	await data.teams.forEach(async team => {
 		if (team.name !== undefined && team.name !== null && team.name !== '') {
+			console.log(`Team ${team.name}`);
 			await addRole(team.name, false);
 			await addChannel(team, cat);
 		}
@@ -310,7 +323,8 @@ async function addCategory(name) {
 		permissions: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGES', 'MANAGE_MESSAGES', 'MANAGE_ROLES', 'MANAGE_CHANNELS'],
 		position: 0,
 	});
-	// TODO: save category id list to reverse channels creation
+	data.factionsCategoryIds.push(category.id);
+	db.set('factions', data.factionsCategoryIds);
 	return category;
 }
 
@@ -328,9 +342,12 @@ async function addChannel(team, cat) {
 	await channel.permissionOverwrites.edit(data.guild.roles.cache.find(rol => rol.name === process.env.ORGA_ROLE).id, {
 		VIEW_CHANNEL: true,
 	});
-	await channel.permissionOverwrites.edit(data.guild.roles.cache.find(rol => rol.name.toLowerCase() === team.name.toLowerCase()).id, {
-		VIEW_CHANNEL: true,
-	});
+	// await channel.permissionOverwrites.edit(data.guild.roles.cache.find(rol => {
+	// 	console.log(rol.name.toLowerCase() + ' vs ' + team.name.toLowerCase());
+	// 	return rol.name.toLowerCase() === team.name.toLowerCase();
+	// }).id, {
+	// 	VIEW_CHANNEL: true,
+	// });
 	await channel.permissionOverwrites.edit(data.guild.id, {
 		VIEW_CHANNEL: false,
 	});
@@ -343,9 +360,12 @@ async function addRole(roleName, isFaction) {
 		color: '#000000',
 		mentionable: true,
 		hoist: true,
-		position: 3,
 	})
-		.then(created => console.log(`Created role ${created.name}`))
+		.then(created => {
+			console.log(`Created role ${created.name}`);
+			data.rolesCreatedIds.push(created.id);
+			db.set('roles', data.rolesCreatedIds);
+		})
 		.catch(console.error);
 }
 
