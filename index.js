@@ -187,7 +187,40 @@ async function resetRoles() {
 			});
 		}
 
-		// TODO: remove factions roles and names as well
+		data.factionsCategoryIds.forEach(async categoryId => {
+			try {
+				const category = await data.guild.channels.cache.get(categoryId);
+				category.children.forEach(channel => {
+					try {
+						channel.delete();
+					}
+					catch (error) {
+						console.log(error);
+					}
+				});
+				category.delete();
+			}
+			catch (error) {
+				console.log(error);
+			}
+
+			data.factionsCategoryIds.splice(data.factionsCategoryIds.indexOf(categoryId), 1);
+		});
+
+		data.rolesCreatedIds.forEach(async roleId => {
+			// Remove and handle error
+			try {
+				data.guild.roles.cache.get(roleId).delete();
+			}
+			catch (error) {
+				console.log(error);
+			}
+
+			data.rolesCreatedIds.splice(data.rolesCreatedIds.indexOf(roleId), 1);
+		});
+
+		db.set('roles', []);
+		db.set('factions', []);
 	});
 }
 
@@ -229,12 +262,12 @@ async function changeRoleAndName(member, listStudents = null, isSync = false) {
 				const rolesToAdd = [];
 				if (u.is_newcomer === 1) {
 					rolesToAdd.push(data.rolesList[0]);
-					// RolesToAdd = rolesToAdd.concat(await addTeamRole(u.team_id));
+					// RolesToAdd = rolesToAdd.concat(await addTeamRole(member, u.team_id));
 				}
 				else {
 					if (u.ce === 1) {
 						rolesToAdd.push(data.rolesList[1]);
-						// RolesToAdd = rolesToAdd.concat(await addTeamRole(u.team_id));
+						// RolesToAdd = rolesToAdd.concat(await addTeamRole(member, u.team_id));
 					}
 
 					if (u.orga === 1) {rolesToAdd.push(data.rolesList[2]);}
@@ -303,17 +336,19 @@ async function renameMember(member, userSite, roleName) {
 async function createRolesAndChannels() {
 	await callApi();
 	const cat = [];
-	await data.factions.forEach(async faction => {
+
+	await Promise.all(data.factions.map(async faction => {
 		await addRole(faction.name, true);
 		cat.push(await addCategory(faction.name));
-	});
-	await data.teams.forEach(async team => {
+	}));
+
+	await Promise.all(data.teams.map(async team => {
 		if (team.name !== undefined && team.name !== null && team.name !== '') {
 			console.log(`Team ${team.name}`);
 			await addRole(team.name, false);
 			await addChannel(team, cat);
 		}
-	});
+	}));
 }
 
 // Create a category
@@ -342,12 +377,16 @@ async function addChannel(team, cat) {
 	await channel.permissionOverwrites.edit(data.guild.roles.cache.find(rol => rol.name === process.env.ORGA_ROLE).id, {
 		VIEW_CHANNEL: true,
 	});
-	// await channel.permissionOverwrites.edit(data.guild.roles.cache.find(rol => {
-	// 	console.log(rol.name.toLowerCase() + ' vs ' + team.name.toLowerCase());
-	// 	return rol.name.toLowerCase() === team.name.toLowerCase();
-	// }).id, {
-	// 	VIEW_CHANNEL: true,
-	// });
+	try {
+		await channel.permissionOverwrites.edit(data.guild.roles.cache.find(rol => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim()).id, {
+			VIEW_CHANNEL: true,
+		});
+	}
+	catch (error) {
+		console.log(error);
+		console.error(team.name.toLowerCase());
+	}
+
 	await channel.permissionOverwrites.edit(data.guild.id, {
 		VIEW_CHANNEL: false,
 	});
@@ -355,18 +394,16 @@ async function addChannel(team, cat) {
 
 // Create role
 async function addRole(roleName, isFaction) {
-	const role = await data.guild.roles.create({
+	await data.guild.roles.create({
 		name: roleName,
-		color: '#000000',
+		color: '#' + Math.floor(Math.random() * 16777215).toString(16),
 		mentionable: true,
 		hoist: true,
-	})
-		.then(created => {
-			console.log(`Created role ${created.name}`);
-			data.rolesCreatedIds.push(created.id);
-			db.set('roles', data.rolesCreatedIds);
-		})
-		.catch(console.error);
+	}).then(created => {
+		console.log(`Created role ${created.name}`);
+		data.rolesCreatedIds.push(created.id);
+		db.set('roles', data.rolesCreatedIds);
+	}).catch(console.error);
 }
 
 

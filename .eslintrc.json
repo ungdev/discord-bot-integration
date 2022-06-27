@@ -25,6 +25,7 @@
 		"max-nested-callbacks": ["error", { "max": 4 }],
 		"max-statements-per-line": ["error", { "max": 2 }],
 		"no-console": "off",
+		"no-constant-binary-expression": "error",
 		"no-empty-function": "error",
 		"no-floating-decimal": "error",
 		"no-inline-comments": "error",
@@ -52,6 +53,8 @@
         "new-cap": "off",
 		"no-negated-condition": "off",
         "no-unused-vars": "off",
-		"max-depth": ["error", 6]
+		"max-depth": ["error", 6],
+		"guard-for-in": "off",
+		"no-await-in-loop": "off"
     }
 }
