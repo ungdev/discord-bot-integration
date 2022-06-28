@@ -399,7 +399,7 @@ async function addChannel(team, cat) {
 async function addRole(roleName, isFaction) {
 	await data.guild.roles.create({
 		name: roleName,
-		color: '#' + Math.floor(Math.random() * 16777215).toString(16),
+		color: '#000000',
 		mentionable: true,
 		hoist: true,
 	}).then(created => {
