@@ -71,7 +71,7 @@ client.on('interactionCreate', async interaction => {
 			await interaction.followUp({ content: 'Sync done!' });
 			console.log('Sync done!');
 			break;
-		case 'reset-roles':
+		case 'reset':
 			await interaction.reply('Reset in progress...');
 			await resetRoles();
 			await interaction.followUp({ content: 'Reset done!' });
@@ -166,7 +166,7 @@ async function callApi(teamId = null) {
 async function resetRoles() {
 	// Get all members of the guild
 	const members = await data.guild.members.fetch();
-	members.forEach(member => {
+	await Promise.all(members.map(async member => {
 		// Can't change owner's name
 		if (member.user.id !== data.guild.ownerId) {
 			/* -----------------------------
@@ -186,42 +186,43 @@ async function resetRoles() {
 				}
 			});
 		}
+	}));
 
-		data.factionsCategoryIds.forEach(async categoryId => {
-			try {
-				const category = await data.guild.channels.cache.get(categoryId);
-				category.children.forEach(channel => {
-					try {
-						channel.delete();
-					}
-					catch (error) {
-						console.log(error);
-					}
-				});
-				category.delete();
-			}
-			catch (error) {
-				console.log(error);
-			}
+	await Promise.all(data.factionsCategoryIds.map(async categoryId => {
+		try {
+			const category = await data.guild.channels.cache.get(categoryId);
+			await Promise.all(category.children.map(async channel => {
+				try {
+					await channel.delete();
+				}
+				catch (error) {
+					console.log(error);
+				}
+			}));
 
-			data.factionsCategoryIds.splice(data.factionsCategoryIds.indexOf(categoryId), 1);
-		});
+			await category.delete();
+		}
+		catch (error) {
+			console.log(error);
+		}
 
-		data.rolesCreatedIds.forEach(async roleId => {
-			// Remove and handle error
-			try {
-				data.guild.roles.cache.get(roleId).delete();
-			}
-			catch (error) {
-				console.log(error);
-			}
+		data.factionsCategoryIds.splice(data.factionsCategoryIds.indexOf(categoryId), 1);
+	}));
 
-			data.rolesCreatedIds.splice(data.rolesCreatedIds.indexOf(roleId), 1);
-		});
+	await Promise.all(data.rolesCreatedIds.map(async roleId => {
+		// Remove and handle error
+		try {
+			await data.guild.roles.cache.get(roleId).delete();
+		}
+		catch (error) {
+			console.log(error);
+		}
 
-		db.set('roles', []);
-		db.set('factions', []);
-	});
+		data.rolesCreatedIds.splice(data.rolesCreatedIds.indexOf(roleId), 1);
+	}));
+
+	db.set('roles', []);
+	db.set('factions', []);
 }
 
 // Function to sync every roles and names of the guild
