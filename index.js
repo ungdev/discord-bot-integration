@@ -260,15 +260,15 @@ async function changeRoleAndName(member, listStudents = null, isSync = false) {
 							ADD ROLES
 				----------------------------- */
 
-				const rolesToAdd = [];
+				let rolesToAdd = [];
 				if (u.is_newcomer === 1) {
 					rolesToAdd.push(data.rolesList[0]);
-					// RolesToAdd = rolesToAdd.concat(await addTeamRole(member, u.team_id));
+					rolesToAdd = rolesToAdd.concat(await addTeamRole(u.team_id));
 				}
 				else {
 					if (u.ce === 1) {
 						rolesToAdd.push(data.rolesList[1]);
-						// RolesToAdd = rolesToAdd.concat(await addTeamRole(member, u.team_id));
+						rolesToAdd = rolesToAdd.concat(await addTeamRole(u.team_id));
 					}
 
 					if (u.orga === 1) {rolesToAdd.push(data.rolesList[2]);}
@@ -300,12 +300,13 @@ async function changeRoleAndName(member, listStudents = null, isSync = false) {
 }
 
 // Add faction and team role for newcomers and ce
-async function addTeamRole(member, teamId) {
+async function addTeamRole(teamId) {
 	if (teamId === null) {
 		return [];
 	}
 
 	const team = await callApi(teamId);
+	console.log(team);
 	return [team.name, team.faction_name];
 }
 
