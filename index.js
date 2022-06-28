@@ -115,8 +115,9 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
 			const listStudents = await callApi();
 
 			const userSite = listStudents.filter(o => o.discord === tag);
-
-			renameMember(newMember, userSite[0], changes[0].new[0].name);
+			if (userSite.length !== 0) {
+				renameMember(newMember, userSite[0], changes[0].new[0].name);
+			}
 		}
 	}
 });
