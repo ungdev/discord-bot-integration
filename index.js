@@ -406,6 +406,7 @@ async function addRole(roleName, isFaction) {
 		console.log(`Created role ${created.name}`);
 		data.rolesCreatedIds.push(created.id);
 		db.set('roles', data.rolesCreatedIds);
+		return 0;
 	}).catch(console.error);
 }
 
