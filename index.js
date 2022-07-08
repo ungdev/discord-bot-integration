@@ -61,31 +61,30 @@ client.once('ready', async () => {
 // Watch for commands
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
-	if (interaction.guild.id === data.guild.id) {
-		const { commandName } = interaction;
+	// if (interaction.guild.id !== data.guild.id) return;
+	const { commandName } = interaction;
 
-		switch (commandName) {
-		case 'sync':
-			await interaction.reply('Sync in progress...');
-			await syncRolesAndNames();
-			await interaction.followUp({ content: 'Sync done!' });
-			console.log('Sync done!');
-			break;
-		case 'reset':
-			await interaction.reply('Reset in progress...');
-			await resetRoles();
-			await interaction.followUp({ content: 'Reset done!' });
-			console.log('Reset done!');
-			break;
-		case 'create-roles-channels':
-			await interaction.reply('Creation in progress...');
-			await createRolesAndChannels();
-			await interaction.followUp({ content: 'Creation done!' });
-			console.log('Creation done!');
-			break;
-		default:
-			break;
-		}
+	switch (commandName) {
+	case 'sync':
+		await interaction.reply('Sync in progress...');
+		await syncRolesAndNames();
+		await interaction.followUp({ content: 'Sync done!' });
+		console.log('Sync done!');
+		break;
+	case 'reset':
+		await interaction.reply('Reset in progress...');
+		await resetRoles();
+		await interaction.followUp({ content: 'Reset done!' });
+		console.log('Reset done!');
+		break;
+	case 'create-roles-channels':
+		await interaction.reply('Creation in progress...');
+		await createRolesAndChannels();
+		await interaction.followUp({ content: 'Creation done!' });
+		console.log('Creation done!');
+		break;
+	default:
+		break;
 	}
 });
 
