@@ -61,7 +61,7 @@ client.once('ready', async () => {
 // Watch for commands
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
-	if (interaction.guild.id !== data.guild.id) return;
+	// If (interaction.guild.id !== data.guild.id) return;
 	const { commandName } = interaction;
 
 	switch (commandName) {
@@ -233,7 +233,10 @@ async function syncRolesAndNames() {
 
 	await Promise.all(members.map(async mb => {
 		await changeRoleAndName(mb, listStudents, true);
-	}));
+	})).catch(error => {
+		console.log('Sync roles and names failed!');
+		console.log(error);
+	});
 
 	console.log('Finished syncRolesAndNames');
 }
@@ -263,12 +266,12 @@ async function changeRoleAndName(member, listStudents = null, isSync = false) {
 				let rolesToAdd = [];
 				if (u.is_newcomer === 1) {
 					rolesToAdd.push(data.rolesList[0]);
-					rolesToAdd = rolesToAdd.concat(await addTeamRole(u.team_id));
+					// rolesToAdd = rolesToAdd.concat(await addTeamRole(u.team_id));
 				}
 				else {
 					if (u.ce === 1) {
 						rolesToAdd.push(data.rolesList[1]);
-						rolesToAdd = rolesToAdd.concat(await addTeamRole(u.team_id));
+						// rolesToAdd = rolesToAdd.concat(await addTeamRole(u.team_id));
 					}
 
 					if (u.orga === 1) {rolesToAdd.push(data.rolesList[2]);}
@@ -306,7 +309,6 @@ async function addTeamRole(teamId) {
 	}
 
 	const team = await callApi(teamId);
-	console.log(team);
 	return [team.name, team.faction_name];
 }
 
