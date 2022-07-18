@@ -61,7 +61,7 @@ client.once('ready', async () => {
 // Watch for commands
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
-	// If (interaction.guild.id !== data.guild.id) return;
+	if (interaction.guild.id !== data.guild.id) return;
 	const { commandName } = interaction;
 
 	switch (commandName) {
