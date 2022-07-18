@@ -309,7 +309,8 @@ async function addTeamRole(teamId) {
 	}
 
 	const team = await callApi(teamId);
-	return [team.name, team.faction_name];
+
+	return [data.guild.roles.cache.find(rol => rol.name === team.name), data.guild.roles.cache.find(rol => rol.name === team.faction_name)];
 }
 
 // Rename user to [Prénom NOM - Role]
