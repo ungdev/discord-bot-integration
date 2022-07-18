@@ -378,9 +378,13 @@ async function addChannel(team, cat) {
 	await channel.setParent(cat.find(c => c.name.toLowerCase() === team.faction.name.toLowerCase()).id);
 
 	// Modify permissions for the team role and disable view form everyone
-	await channel.permissionOverwrites.edit(data.guild.roles.cache.find(rol => rol.name === process.env.COORDS_ROLE).id, {
-		VIEW_CHANNEL: true,
-	});
+	const listRolesCanView = [process.env.COORDS_ROLE, process.env.NEWCOMER_RESPO_ROLE, process.env.CE_RESPO, process.env.REFEREE_ROLE, process.env.DEV_ROLE];
+	await Promise.all(listRolesCanView.map(async role => {
+		await channel.permissionOverwrites.edit(data.guild.roles.cache.find(rol => rol.name === role).id, {
+			VIEW_CHANNEL: true,
+		});
+	}));
+
 	try {
 		await channel.permissionOverwrites.edit(data.guild.roles.cache.find(rol => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim()).id, {
 			VIEW_CHANNEL: true,
