@@ -10,7 +10,7 @@ const { Routes } = require('discord-api-types/v9');
 const commands = [
 	new SlashCommandBuilder().setName('sync').setDescription('Sync automatically roles'),
 	new SlashCommandBuilder().setName('reset').setDescription('Reset roles given by the bot, roles and channels'),
-	new SlashCommandBuilder().setName('create-roles-channels').setDescription('Create roles and channels for each teams'),
+	new SlashCommandBuilder().setName('create').setDescription('Create roles and channels for each teams'),
 ].map(command => command.toJSON());
 
 // Register Commands

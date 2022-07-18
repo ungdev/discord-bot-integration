@@ -77,7 +77,7 @@ client.on('interactionCreate', async interaction => {
 		await interaction.followUp({ content: 'Reset done!' });
 		console.log('Reset done!');
 		break;
-	case 'create-roles-channels':
+	case 'create':
 		await interaction.reply('Creation in progress...');
 		await createRolesAndChannels();
 		await interaction.followUp({ content: 'Creation done!' });
@@ -266,12 +266,12 @@ async function changeRoleAndName(member, listStudents = null, isSync = false) {
 				let rolesToAdd = [];
 				if (u.is_newcomer === 1) {
 					rolesToAdd.push(data.rolesList[0]);
-					// rolesToAdd = rolesToAdd.concat(await addTeamRole(u.team_id));
+					rolesToAdd = rolesToAdd.concat(await addTeamRole(u.team_id));
 				}
 				else {
 					if (u.ce === 1) {
 						rolesToAdd.push(data.rolesList[1]);
-						// rolesToAdd = rolesToAdd.concat(await addTeamRole(u.team_id));
+						rolesToAdd = rolesToAdd.concat(await addTeamRole(u.team_id));
 					}
 
 					if (u.orga === 1) {rolesToAdd.push(data.rolesList[2]);}
