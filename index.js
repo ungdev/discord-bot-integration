@@ -42,7 +42,7 @@ const db = new JSONdb('storage.json');
 
 // When the client is ready, run this code (only once)
 client.once('ready', async () => {
-	console.log('Ready!');
+	log('Ready!');
 
 	data.guild = client.guilds.cache.get(process.env.GUILD_ID);
 
@@ -69,19 +69,19 @@ client.on('interactionCreate', async interaction => {
 		await interaction.reply('Sync in progress...');
 		await syncRolesAndNames();
 		await interaction.followUp({ content: 'Sync done!' });
-		console.log('Sync done!');
+		log('Sync done!');
 		break;
 	case 'reset':
 		await interaction.reply('Reset in progress...');
 		await resetRoles();
 		await interaction.followUp({ content: 'Reset done!' });
-		console.log('Reset done!');
+		log('Reset done!');
 		break;
 	case 'create':
 		await interaction.reply('Creation in progress...');
 		await createRolesAndChannels();
 		await interaction.followUp({ content: 'Creation done!' });
-		console.log('Creation done!');
+		log('Creation done!');
 		break;
 	default:
 		break;
@@ -90,7 +90,7 @@ client.on('interactionCreate', async interaction => {
 
 // Watch for new users
 client.on('guildMemberAdd', member => {
-	console.log(`New User "${member.user.username}" has joined "${member.guild.name}"`);
+	log(`New User "${member.user.username}" has joined "${member.guild.name}"`);
 
 	changeRoleAndName(member);
 });
@@ -106,7 +106,7 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
 		if (!roleAddLog) return;
 		const { executor, target, changes } = roleAddLog;
 
-		console.log(`Role ${changes[0].new[0].name} added to <@${target.username}#${target.discriminator}> by <@${executor.username}#${executor.discriminator}>`);
+		log(`Role ${changes[0].new[0].name} added to <@${target.username}#${target.discriminator}> by <@${executor.username}#${executor.discriminator}>`);
 
 		if ((changes[0].new[0].id === data.rolesList[0].id || changes[0].new[0].id === data.rolesList[1].id || changes[0].new[0].id === data.rolesList[2].id) && executor.id !== process.env.CLIENT_ID) {
 			const tag = `${target.username}#${target.discriminator}`;
@@ -120,6 +120,15 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
 		}
 	}
 });
+
+function log(message) {
+	const timestamp = new Date().toLocaleString();
+	console.log(`[${timestamp}] ${message}`);
+}
+
+function error(message) {
+	log(`[ERROR] ${message}`);
+}
 
 // Function to call the integration API and list each students in the website
 async function callApi(teamId = null) {
@@ -179,10 +188,10 @@ async function resetRoles() {
 			rolesList.forEach(string => {
 				const role = data.guild.roles.cache.find(rol => rol.name === string);
 				if (role === undefined) {
-					console.log(`Role "${string}" doesn't exist in this guild!`);
+					log(`Role "${string}" doesn't exist in this guild!`);
 				}
 				else {
-					member.roles.remove(role).catch(console.error);
+					member.roles.remove(role).catch(error);
 				}
 			});
 		}
@@ -195,15 +204,15 @@ async function resetRoles() {
 				try {
 					await channel.delete();
 				}
-				catch (error) {
-					console.log(error);
+				catch (error2) {
+					error(error2);
 				}
 			}));
 
 			await category.delete();
 		}
-		catch (error) {
-			console.log(error);
+		catch (error1) {
+			error(error1);
 		}
 
 		data.factionsCategoryIds.splice(data.factionsCategoryIds.indexOf(categoryId), 1);
@@ -214,8 +223,8 @@ async function resetRoles() {
 		try {
 			await data.guild.roles.cache.get(roleId).delete();
 		}
-		catch (error) {
-			console.log(error);
+		catch (error3) {
+			error(error3);
 		}
 
 		data.rolesCreatedIds.splice(data.rolesCreatedIds.indexOf(roleId), 1);
@@ -233,12 +242,11 @@ async function syncRolesAndNames() {
 
 	await Promise.all(members.map(async mb => {
 		await changeRoleAndName(mb, listStudents, true);
-	})).catch(error => {
-		console.log('Sync roles and names failed!');
-		console.log(error);
+	})).catch(error4 => {
+		error('Sync roles and names failed!\n ' + error4);
 	});
 
-	console.log('Finished syncRolesAndNames');
+	log('Finished syncRolesAndNames');
 }
 
 // Function to change a role or a name
@@ -297,7 +305,7 @@ async function changeRoleAndName(member, listStudents = null, isSync = false) {
 			member.send(`Salut <@${user.id}>, tu dois t'inscrire sur le site de l'Intégration (https://integration.utt.fr/) en renseignant ton tag discord pour obtenir tes rôles et avoir accès à tous les channels de discussion !`);
 		}
 		else {
-			console.log(`${tag} is not in the list`);
+			log(`${tag} is not in the list`);
 		}
 	}
 }
@@ -349,7 +357,7 @@ async function createRolesAndChannels() {
 
 	await Promise.all(data.teams.map(async team => {
 		if (team.name !== undefined && team.name !== null && team.name !== '') {
-			console.log(`Team ${team.name}`);
+			log(`Team ${team.name}`);
 			await addRole(team.name, false);
 			await addChannel(team, cat);
 		}
@@ -391,9 +399,8 @@ async function addChannel(team, cat) {
 			VIEW_CHANNEL: true,
 		});
 	}
-	catch (error) {
-		console.log(error);
-		console.error(team.name.toLowerCase());
+	catch (error5) {
+		error(error5);
 	}
 
 	await channel.permissionOverwrites.edit(data.guild.id, {
@@ -409,7 +416,7 @@ async function addRole(roleName, isFaction) {
 		mentionable: true,
 		hoist: true,
 	}).then(created => {
-		console.log(`Created role ${created.name}`);
+		log(`Created role ${created.name}`);
 		data.rolesCreatedIds.push(created.id);
 		db.set('roles', data.rolesCreatedIds);
 		return 0;
