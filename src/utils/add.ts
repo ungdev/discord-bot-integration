@@ -9,24 +9,24 @@ export async function addTeamRole(teamId: number) {
 
 	const team = await callApi(teamId);
 
-	return [data.guild.roles.cache.find((rol: any) => rol.name === team.name), data.guild.roles.cache.find((rol: any) => rol.name === team.faction_name)];
+	return [global.data.guild.roles.cache.find((rol: any) => rol.name === team.name), global.data.guild.roles.cache.find((rol: any) => rol.name === team.faction_name)];
 }
 
 // Create a category
 export async function addCategory(name: string) {
-	const category = await data.guild.channels.create(name, {
+	const category = await global.data.guild.channels.create(name, {
 		type: 'GUILD_CATEGORY',
 		permissions: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGES', 'MANAGE_MESSAGES', 'MANAGE_ROLES', 'MANAGE_CHANNELS'],
 		position: 0,
 	});
-	data.factionsCategoryIds.push(category.id);
-	db.set('factions', data.factionsCategoryIds);
+	global.data.factionsCategoryIds.push(category.id);
+	global.db.set('factions', global.data.factionsCategoryIds);
 	return category;
 }
 
 // Create a channel and add it to the category
 export async function addChannel(team: any, cat: any) {
-	const channel = await data.guild.channels.create(team.name, {
+	const channel = await global.data.guild.channels.create(team.name, {
 		type: 'text',
 		permissions: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGES', 'MANAGE_MESSAGES', 'MANAGE_ROLES', 'MANAGE_CHANNELS'],
 		position: 0,
@@ -37,13 +37,13 @@ export async function addChannel(team: any, cat: any) {
 	// Modify permissions for the team role and disable view form everyone
 	const listRolesCanView = [process.env.COORDS_ROLE, process.env.CE_RESPO, process.env.DEV_ROLE];
 	await Promise.all(listRolesCanView.map(async role => {
-		await channel.permissionOverwrites.edit(data.guild.roles.cache.find((rol: any) => rol.name === role).id, {
+		await channel.permissionOverwrites.edit(global.data.guild.roles.cache.find((rol: any) => rol.name === role).id, {
 			VIEW_CHANNEL: true,
 		});
 	}));
 
 	try {
-		await channel.permissionOverwrites.edit(data.guild.roles.cache.find((rol: any) => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim()).id, {
+		await channel.permissionOverwrites.edit(global.data.guild.roles.cache.find((rol: any) => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim()).id, {
 			VIEW_CHANNEL: true,
 		});
 	}
@@ -51,22 +51,22 @@ export async function addChannel(team: any, cat: any) {
 		error(error);
 	}
 
-	await channel.permissionOverwrites.edit(data.guild.id, {
+	await channel.permissionOverwrites.edit(global.data.guild.id, {
 		VIEW_CHANNEL: false,
 	});
 }
 
 // Create role
 export async function addRole(roleName: string) {
-	await data.guild.roles.create({
+	await global.data.guild.roles.create({
 		name: roleName,
 		color: '#000000',
 		mentionable: true,
 		hoist: true,
 	}).then((created: any) => {
 		log(`Created role ${created.name}`);
-		data.rolesCreatedIds.push(created.id);
-		db.set('roles', data.rolesCreatedIds);
+		global.data.rolesCreatedIds.push(created.id);
+		global.db.set('roles', global.data.rolesCreatedIds);
 		return 0;
 	}).catch(console.error);
 }

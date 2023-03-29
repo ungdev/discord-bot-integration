@@ -18,7 +18,7 @@ export const Sync: Command = {
 
 // Function to sync every roles and names of the guild
 async function sync() {
-	const members = await data.guild.members.fetch();
+	const members = await globalThis.data.guild.members.fetch();
 
 	const listStudents = await callApi();
 

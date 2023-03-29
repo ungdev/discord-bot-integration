@@ -15,10 +15,10 @@ export const Reset: Command = {
 
 async function reset() {
 	// Get all members of the guild
-	const members = await data.guild.members.fetch();
+	const members = await globalThis.data.guild.members.fetch();
 	await Promise.all(members.map(async (member: any) => {
 		// Can't change owner's name
-		if (member.user.id !== data.guild.ownerId) {
+		if (member.user.id !== globalThis.data.guild.ownerId) {
 			/* -----------------------------
 						REMOVE ROLES
 			----------------------------- */
@@ -27,7 +27,7 @@ async function reset() {
 
 			// Remove old roles
 			rolesList.forEach(string => {
-				const role = data.guild.roles.cache.find((rol: any) => rol.name === string);
+				const role = globalThis.data.guild.roles.cache.find((rol: any) => rol.name === string);
 				if (role === undefined) {
 					log(`Role "${string}" doesn't exist in this guild!`);
 				}
@@ -40,9 +40,9 @@ async function reset() {
 		}
 	}));
 
-	await Promise.all(data.factionsCategoryIds.map(async (categoryId: number) => {
+	await Promise.all(globalThis.data.factionsCategoryIds.map(async (categoryId: number) => {
 		try {
-			const category = await data.guild.channels.cache.get(categoryId);
+			const category = await globalThis.data.guild.channels.cache.get(categoryId);
 			await Promise.all(category.children.map(async (channel: any) => {
 				try {
 					await channel.delete();
@@ -58,21 +58,21 @@ async function reset() {
 			error(error);
 		}
 
-		data.factionsCategoryIds.splice(data.factionsCategoryIds.indexOf(categoryId), 1);
+		globalThis.data.factionsCategoryIds.splice(globalThis.data.factionsCategoryIds.indexOf(categoryId), 1);
 	}));
 
-	await Promise.all(data.rolesCreatedIds.map(async (roleId: number) => {
+	await Promise.all(globalThis.data.rolesCreatedIds.map(async (roleId: number) => {
 		// Remove and handle error
 		try {
-			await data.guild.roles.cache.get(roleId).delete();
+			await globalThis.data.guild.roles.cache.get(roleId).delete();
 		}
 		catch (error: any) {
 			error(error);
 		}
 
-		data.rolesCreatedIds.splice(data.rolesCreatedIds.indexOf(roleId), 1);
+		globalThis.data.rolesCreatedIds.splice(globalThis.data.rolesCreatedIds.indexOf(roleId), 1);
 	}));
 
-	db.set('roles', []);
-	db.set('factions', []);
+	global.db.set('roles', []);
+	global.db.set('factions', []);
 }

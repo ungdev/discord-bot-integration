@@ -1,6 +1,7 @@
 import { callApi } from './api';
 import { log } from './logger';
 import { addTeamRole } from './add';
+import { renameMember } from './renameMember';
 
 // Function to change a role or a name
 export async function changeRoleAndName(member: any, listStudents: any = null, isSync: boolean = false) {
@@ -19,28 +20,28 @@ export async function changeRoleAndName(member: any, listStudents: any = null, i
 			const u = userSite[0];
 
 			// Can't change owner's name
-			if (member.user.id !== data.guild.ownerId) {
+			if (member.user.id !== global.data.guild.ownerId) {
 				/* -----------------------------
 							ADD ROLES
 				----------------------------- */
 
-				let rolesToAdd = [];
+				let rolesToAdd: any[] = [];
 				if (u.is_newcomer === 1) {
-					rolesToAdd.push(data.rolesList[0]);
+					rolesToAdd.push(global.data.rolesList[0]);
 					rolesToAdd = rolesToAdd.concat(await addTeamRole(u.team_id));
 				}
 				else {
 					if (u.ce === 1) {
-						rolesToAdd.push(data.rolesList[1]);
+						rolesToAdd.push(global.data.rolesList[1]);
 						rolesToAdd = rolesToAdd.concat(await addTeamRole(u.team_id));
 					}
 
-					if (u.orga === 1) {rolesToAdd.push(data.rolesList[2]);}
+					if (u.orga === 1) {rolesToAdd.push(global.data.rolesList[2]);}
 				}
 
 
 				// Remove old roles
-				await member.roles.remove(data.rolesList).catch(console.error);
+				await member.roles.remove(global.data.rolesList).catch(console.error);
 
 				// Add new roles
 				await member.roles.add(rolesToAdd).catch(console.error);

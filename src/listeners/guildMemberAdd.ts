@@ -4,7 +4,7 @@ import { changeRoleAndName } from "../utils/changeRoleAndName";
 
 export default (client: Client): void => {
     // Watch for new users
-    client.on('guildMemberAdd', member => {
+    client.on('guildMemberAdd', (member: any) => {
         log(`New User "${member.user.username}" has joined "${member.guild.name}"`);
 
         changeRoleAndName(member);

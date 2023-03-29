@@ -21,12 +21,12 @@ async function create() {
 	await callApi();
 	const cat = new Array();
 
-	await Promise.all(data.factions.map(async (faction: any) => {
+	await Promise.all(globalThis.data.factions.map(async (faction: any) => {
 		await addRole(faction.name);
 		cat.push(await addCategory(faction.name));
 	}));
 
-	await Promise.all(data.teams.map(async (team: any) => {
+	await Promise.all(globalThis.data.teams.map(async (team: any) => {
 		if (team.name !== undefined && team.name !== null && team.name !== '') {
 			log(`Team ${team.name}`);
 			await addRole(team.name);

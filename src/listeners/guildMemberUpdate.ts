@@ -1,11 +1,12 @@
 import { Client } from "discord.js";
 import { callApi } from "../utils/api";
 import { log } from "../utils/logger";
+import { renameMember } from "../utils/renameMember";
 
 
 export default (client: Client): void => {
     // Watch for users update (role change)
-    client.on('guildMemberUpdate', async (oldMember, newMember) => {
+    client.on('guildMemberUpdate', async (oldMember: any, newMember: any) => {
         if (oldMember.roles.cache.size < newMember.roles.cache.size) {
             const fetchedLogs = await oldMember.guild.fetchAuditLogs({
                 limit: 1,
@@ -21,7 +22,7 @@ export default (client: Client): void => {
 
             log(`Role ${change.name} added to <@${target?.username}#${target?.discriminator}> by <@${executor?.username}#${executor?.discriminator}>`);
 
-            if ((change.id === data.rolesList[0].id || change.id === data.rolesList[1].id || change.id === data.rolesList[2].id) && executor?.id !== process.env.CLIENT_ID) {
+            if ((change.id === global.data.rolesList[0].id || change.id === global.data.rolesList[1].id || change.id === global.data.rolesList[2].id) && executor?.id !== process.env.CLIENT_ID) {
                 const tag = `${target?.username}#${target?.discriminator}`;
 
                 const listStudents = await callApi();

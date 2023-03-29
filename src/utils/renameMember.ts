@@ -1,5 +1,5 @@
 // Rename user to [Prénom NOM - Role]
-async function renameMember(member: any, userSite: any, roleName: any) {
+export async function renameMember(member: any, userSite: any, roleName: any) {
 	let firstName = userSite.first_name.toLowerCase().replace(/\w\S*/g, (w: any) => (w.replace(/^\w/, (c: any) => c.toUpperCase())));
 	// Remove too long last name
 	const lastName = userSite.last_name.toUpperCase().split(/[-\s]/)[0];
@@ -19,7 +19,9 @@ async function renameMember(member: any, userSite: any, roleName: any) {
 		name = name.substring(0, maxChar);
 	}
 
-	const roleSuffix = (roleName === null) ? '' : ' - ' + roleName;
+	// const roleSuffix = (roleName === null) ? '' : ' - ' + roleName;
 
-	await member.setNickname(name + roleSuffix);
+	await member.setNickname(name).catch((error: any) => {
+		error(error);
+	});
 }

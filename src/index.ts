@@ -11,6 +11,20 @@ import { Commands } from "./command";
 // Database
 const jsonDb = require('simple-json-db');
 
+// Global variables
+global.db = new jsonDb('storage.json');
+
+global.data = {
+    bearer: null,
+    bearerConfig: null,
+    guild: null,
+    factions: null,
+    teams: null,
+    rolesList: [],
+    rolesCreatedIds: [],
+    factionsCategoryIds: [],
+};
+
 // Server
 import express, { Request, Response } from "express";
 const app = express();
@@ -21,13 +35,10 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.get('/db', (req: Request, res: Response) => {
-	res.send(JSON.stringify(db.JSON()));
+	res.send(JSON.stringify(global.db.JSON()));
 });
 
 app.listen(port);
-
-// Global variables
-var db = new jsonDb('storage.json');
 
 // Create a new client instance
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS] });
@@ -40,7 +51,7 @@ client.once('ready', async () => {
     // Register commands
     await client.application?.commands.set(Commands);
 
-    data.guild = client.guilds.cache.get(process.env.GUILD_ID || '');
+    global.data.guild = client.guilds.cache.get(process.env.GUILD_ID || '');
 
     client.user?.setPresence({
         activities: [{
@@ -49,14 +60,14 @@ client.once('ready', async () => {
         status: 'online',
     });
 
-    data.rolesList = [
-        data.guild.roles.cache.find((rol: any) => rol.name === process.env.NEWCOMER_ROLE), 
-        data.guild.roles.cache.find((rol: any) => rol.name === process.env.CE_ROLE), 
-        data.guild.roles.cache.find((rol: any) => rol.name === process.env.ORGA_ROLE)
+    global.data.rolesList = [
+        global.data.guild.roles.cache.find((rol: any) => rol.name === process.env.NEWCOMER_ROLE), 
+        global.data.guild.roles.cache.find((rol: any) => rol.name === process.env.CE_ROLE), 
+        global.data.guild.roles.cache.find((rol: any) => rol.name === process.env.ORGA_ROLE)
     ];
 
-    data.rolesCreatedIds = db.has('roles') ? db.get('roles') : [];
-    data.factionsCategoryIds = db.has('factions') ? db.get('factions') : [];
+    global.data.rolesCreatedIds = global.db.has('roles') ? global.db.get('roles') : [];
+    global.data.factionsCategoryIds = global.db.has('factions') ? global.db.get('factions') : [];
 });
 
 
