@@ -1,5 +1,5 @@
-import { Client, Interaction } from "discord.js";
-import { Commands } from "../command";
+import { Client, Interaction } from 'discord.js';
+import { Commands } from '../command';
 
 export default (client: Client): void => {
     // Watch for commands
@@ -9,7 +9,7 @@ export default (client: Client): void => {
         if (interaction.isCommand() || interaction.isContextMenu()) {
             const slashCommand = Commands.find((c: any) => c.name === interaction.commandName);
             if (!slashCommand) {
-                interaction.reply({ content: "An error has occurred" });
+                interaction.reply({ content: 'An error has occurred' });
                 return;
             }
 
@@ -17,4 +17,3 @@ export default (client: Client): void => {
         }
     });
 };
-

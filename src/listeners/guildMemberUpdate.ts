@@ -1,8 +1,7 @@
-import { Client } from "discord.js";
-import { callApi } from "../utils/api";
-import { log } from "../utils/logger";
-import { renameMember } from "../utils/functions";
-
+import { Client } from 'discord.js';
+import { callApi } from '../utils/api';
+import { log } from '../utils/logger';
+import { renameMember } from '../utils/functions';
 
 export default (client: Client): void => {
     // Watch for users update (role change)
@@ -16,13 +15,20 @@ export default (client: Client): void => {
             const roleAddLog = fetchedLogs.entries.first();
             if (!roleAddLog) return;
             const { executor, target, changes } = roleAddLog;
-            
-            if(changes === undefined || changes[0] === undefined || changes[0]?.new === undefined) return;
+
+            if (changes === undefined || changes[0] === undefined || changes[0]?.new === undefined) return;
             const change = (changes[0] as any).new[0];
 
-            log(`Role ${change.name} added to <@${target?.username}#${target?.discriminator}> by <@${executor?.username}#${executor?.discriminator}>`);
+            log(
+                `Role ${change.name} added to <@${target?.username}#${target?.discriminator}> by <@${executor?.username}#${executor?.discriminator}>`,
+            );
 
-            if ((change.id === global.data.rolesList[0].id || change.id === global.data.rolesList[1].id || change.id === global.data.rolesList[2].id) && executor?.id !== process.env.CLIENT_ID) {
+            if (
+                (change.id === global.data.rolesList[0].id ||
+                    change.id === global.data.rolesList[1].id ||
+                    change.id === global.data.rolesList[2].id) &&
+                executor?.id !== process.env.CLIENT_ID
+            ) {
                 const tag = `${target?.username}#${target?.discriminator}`;
 
                 const listStudents = await callApi();

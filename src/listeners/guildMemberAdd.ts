@@ -1,6 +1,6 @@
-import { Client } from "discord.js";
-import { log } from "../utils/logger";
-import { changeRoleAndName } from "../utils/functions";
+import { Client } from 'discord.js';
+import { log } from '../utils/logger';
+import { changeRoleAndName } from '../utils/functions';
 
 export default (client: Client): void => {
     // Watch for new users
