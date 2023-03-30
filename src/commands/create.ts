@@ -1,6 +1,6 @@
 import { log } from '../utils/logger';
 import { callApi } from '../utils/api';
-import { addRole, addCategory, addChannel } from '../utils/add';
+import { addRole, addCategory, addChannel } from '../utils/functions';
 import { BaseCommandInteraction, Client } from "discord.js";
 import { Command } from "../command";
 

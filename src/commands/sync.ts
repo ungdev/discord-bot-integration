@@ -1,6 +1,6 @@
 import { log } from '../utils/logger';
 import { callApi } from '../utils/api';
-import { changeRoleAndName } from '../utils/changeRoleAndName';
+import { changeRoleAndName } from '../utils/functions';
 import { GuildMember } from 'discord.js';
 import { Command } from "../command";
 import { BaseCommandInteraction, Client } from "discord.js";

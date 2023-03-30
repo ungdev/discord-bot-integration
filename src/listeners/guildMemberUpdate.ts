@@ -1,7 +1,7 @@
 import { Client } from "discord.js";
 import { callApi } from "../utils/api";
 import { log } from "../utils/logger";
-import { renameMember } from "../utils/renameMember";
+import { renameMember } from "../utils/functions";
 
 
 export default (client: Client): void => {
