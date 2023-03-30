@@ -101,7 +101,7 @@ export async function addRole(roleName: string) {
 }
 
 // Function to change a role or a name
-export async function changeRoleAndName(member: any, listStudents: any = null, isSync: boolean = false) {
+export async function changeRoleAndName(member: any, listStudents: any = null, isSync = false) {
     const { user } = member;
     if (!user.bot) {
         const tag = `${user.username}#${user.discriminator}`;

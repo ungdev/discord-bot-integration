@@ -18,7 +18,7 @@ export default (client: Client): void => {
             const { executor, target, changes } = roleAddLog;
             
             if(changes === undefined || changes[0] === undefined || changes[0]?.new === undefined) return;
-            let change = (changes[0] as any).new[0];
+            const change = (changes[0] as any).new[0];
 
             log(`Role ${change.name} added to <@${target?.username}#${target?.discriminator}> by <@${executor?.username}#${executor?.discriminator}>`);
 

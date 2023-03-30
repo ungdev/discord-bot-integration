@@ -9,7 +9,7 @@ import { log } from "./utils/logger";
 import { Commands } from "./command";
 
 // Database
-const jsonDb = require('simple-json-db');
+import jsonDb from 'simple-json-db';
 
 // Global variables
 global.db = new jsonDb('storage.json');

@@ -1,6 +1,5 @@
 import { Client, Interaction } from "discord.js";
 import { Commands } from "../command";
-import { log } from "../utils/logger";
 
 export default (client: Client): void => {
     // Watch for commands
