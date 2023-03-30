@@ -9,6 +9,7 @@ export async function changeRoleAndName(member: any, listStudents: any = null, i
 	if (!user.bot) {
 		const tag = `${user.username}#${user.discriminator}`;
 
+		// Get students list from API if not already provided
 		if (listStudents === null) {
 			listStudents = await callApi();
 		}
@@ -53,6 +54,8 @@ export async function changeRoleAndName(member: any, listStudents: any = null, i
 				if (rolesToAdd[0] !== undefined) {
 					await renameMember(member, u, rolesToAdd[0].name);
 				}
+
+				log(`${tag} has been updated`);
 			}
 		}
 		else if (!isSync) {

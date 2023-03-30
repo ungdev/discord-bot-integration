@@ -6,6 +6,7 @@ export const Reset: Command = {
     name: "reset",
     description: "Reset roles given by the bot, roles and channels",
     run: async (client: Client, interaction: BaseCommandInteraction) => {
+		log('Reset started!');
 		await interaction.reply('Reset in progress...');
 		await reset();
 		await interaction.followUp({ content: 'Reset done!' });

@@ -1,12 +1,11 @@
 {
   "name": "discord-integration-utt",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Discord BOT of the UTT integration",
   "main": "./src/index.ts",
   "scripts": {
     "start": "ts-node ./src/index.ts",
     "build": "tsc",
-    "register": "node deploy-commands.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

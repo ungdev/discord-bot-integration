@@ -9,6 +9,7 @@ export const Sync: Command = {
     name: "sync",
     description: "Sync automatically roles",
     run: async (client: Client, interaction: BaseCommandInteraction) => {
+		log('Sync started!');
 		await interaction.reply('Sync in progress...');
 		await sync();
 		await interaction.followUp({ content: 'Sync done!' });

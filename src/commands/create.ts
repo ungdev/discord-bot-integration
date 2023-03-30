@@ -8,6 +8,7 @@ export const Create: Command = {
     name: "create",
     description: "Create roles and channels for each teams",
     run: async (client: Client, interaction: BaseCommandInteraction) => {
+		log('Creation of channels and roles started!');
 		await interaction.reply('Creation in progress...');
 		await create();
 		await interaction.followUp({ content: 'Creation done!' });

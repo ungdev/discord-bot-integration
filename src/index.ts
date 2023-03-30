@@ -27,6 +27,9 @@ global.data = {
 
 // Server
 import express, { Request, Response } from "express";
+import interactionCreate from "./listeners/interactionCreate";
+import guildMemberAdd from "./listeners/guildMemberAdd";
+import guildMemberUpdate from "./listeners/guildMemberUpdate";
 const app = express();
 const port = 3000;
 
@@ -70,7 +73,12 @@ client.once('ready', async () => {
     global.data.factionsCategoryIds = global.db.has('factions') ? global.db.get('factions') : [];
 });
 
+// Add commands
+interactionCreate(client);
 
+// Guild events
+guildMemberAdd(client);
+guildMemberUpdate(client);
 
 // Login to Discord with your client's token
 client.login(process.env.BOT_TOKEN);
