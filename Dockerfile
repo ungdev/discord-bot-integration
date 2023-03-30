@@ -1,15 +1,32 @@
-FROM node:latest
+FROM node:alpine AS builder
 
-# Create the bot's directory
-RUN mkdir -p /usr/src/bot
-WORKDIR /usr/src/bot
+WORKDIR /app
 
-COPY package.json /usr/src/bot
+COPY package.json .
 RUN npm install
 
-COPY . /usr/src/bot
+COPY . .
 
 RUN npm run build
 
+# Production image, copy all the files and run next
+FROM node:16-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV production
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
+COPY --chown=nextjs:nodejs package.json .
+RUN npm install --omit=dev
+
+RUN chown -R nextjs:nodejs /app
+
+USER nextjs
+
+EXPOSE 3000
+
 # Start the bot.
-CMD ["node", "build/index.js"]
+CMD ["node", "dist/index.js"]
