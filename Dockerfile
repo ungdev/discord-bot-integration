@@ -18,11 +18,8 @@ ENV NODE_ENV production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nodejs
 
-COPY --from=builder --chown=nodejs:nodejs /app/dist ./
+COPY --from=builder --chown=nodejs:nodejs /app/dist .
 COPY --chown=nodejs:nodejs package.json .
-
-RUN touch logs.txt
-RUN touch storage.json
 
 RUN chown -R nodejs:nodejs /app
 
