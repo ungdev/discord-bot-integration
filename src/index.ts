@@ -6,7 +6,7 @@ import fs from 'fs';
 
 // Discord
 import { Client, GatewayIntentBits } from "discord.js";
-import { log } from "./utils/logger";
+import { error, log } from "./utils/logger";
 
 // Commands
 import { Commands } from "./command";
@@ -15,7 +15,7 @@ import { Commands } from "./command";
 import jsonDb from 'simple-json-db';
 
 // Global variables
-global.db = new jsonDb('storage.json');
+global.db = new jsonDb(__dirname + '/storage.json');
 
 global.data = {
     bearer: null,
@@ -46,7 +46,7 @@ app.get('/db', (req: Request, res: Response) => {
 
 // Temporary code
 app.get('/logs', (req: Request, res: Response) => {
-    fs.readFile(__dirname + '/../logs.txt', 'utf8', (err, data) => {
+    fs.readFile(__dirname + '/logs.txt', 'utf8', (err, data) => {
         if (err) {
             console.error(err);
             res.send(err);
@@ -67,6 +67,14 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 
 client.once('ready', async () => {
     log('Ready!');
+
+    // Sync JSON DB with local file
+    try {
+        global.db.sync();
+    } catch (e) {
+        error('Error while syncing JSON DB: ' + e);
+    }
+    
 
     // Register commands
     await client.application?.commands.set(Commands);
