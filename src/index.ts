@@ -68,6 +68,15 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 client.once('ready', async () => {
     log('Ready!');
 
+    // Create logs.txt file if not exists
+    if (!fs.existsSync(__dirname + '/logs.txt')) {
+        fs.writeFile(__dirname + '/logs.txt', '', function (err) {
+            if (err) {
+                error(`${err}`);
+            }
+        });
+    }
+
     // Sync JSON DB with local file
     try {
         global.db.sync();
