@@ -1,11 +1,11 @@
 import { log } from '../utils/logger';
-import { BaseCommandInteraction, Client } from "discord.js";
+import { CommandInteraction, Client } from "discord.js";
 import { Command } from "../command";
 
 export const Reset: Command = {
     name: "reset",
     description: "Reset roles given by the bot, roles and channels",
-    run: async (client: Client, interaction: BaseCommandInteraction) => {
+    run: async (client: Client, interaction: CommandInteraction) => {
 		log('Reset started!');
 		await interaction.reply('Reset in progress...');
 		await reset();

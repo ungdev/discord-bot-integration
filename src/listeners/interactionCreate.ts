@@ -6,7 +6,7 @@ export default (client: Client): void => {
     client.on('interactionCreate', async (interaction: Interaction) => {
         if (interaction.guild === null || interaction.guild.id !== global.data.guild.id) return;
 
-        if (interaction.isCommand() || interaction.isContextMenu()) {
+        if (interaction.isCommand()) {
             const slashCommand = Commands.find((c: any) => c.name === interaction.commandName);
             if (!slashCommand) {
                 interaction.reply({ content: 'An error has occurred' });

@@ -3,12 +3,12 @@ import { callApi } from '../utils/api';
 import { changeRoleAndName } from '../utils/functions';
 import { GuildMember } from 'discord.js';
 import { Command } from "../command";
-import { BaseCommandInteraction, Client } from "discord.js";
+import { CommandInteraction, Client } from "discord.js";
 
 export const Sync: Command = {
     name: "sync",
     description: "Sync automatically roles",
-    run: async (client: Client, interaction: BaseCommandInteraction) => {
+    run: async (client: Client, interaction: CommandInteraction) => {
 		log('Sync started!');
 		await interaction.reply('Sync in progress...');
 		await sync();

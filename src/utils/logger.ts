@@ -5,8 +5,10 @@ export function log(message: string) {
     const log = `[${timestamp}] ${message}`;
     console.log(log);
 
-    fs.appendFile('logs.txt', log + '\n', function (err) {
-        if (err) throw err;
+    fs.appendFile(__dirname + '/../../logs.txt', log + '\n', function (err) {
+        if (err) {
+            console.log(`[FATAL ERROR] ${err}`);
+        }
     });
 }
 

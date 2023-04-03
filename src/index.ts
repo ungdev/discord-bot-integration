@@ -1,8 +1,11 @@
 // Load the .env file
 require('dotenv').config();
 
+// Utils
+import fs from 'fs';
+
 // Discord
-import { Client, Intents } from "discord.js";
+import { Client, GatewayIntentBits } from "discord.js";
 import { log } from "./utils/logger";
 
 // Commands
@@ -41,10 +44,23 @@ app.get('/db', (req: Request, res: Response) => {
 	res.send(JSON.stringify(global.db.JSON()));
 });
 
+// Temporary code
+app.get('/logs', (req: Request, res: Response) => {
+    fs.readFile(__dirname + '/../logs.txt', 'utf8', (err, data) => {
+        if (err) {
+            console.error(err);
+            return;
+        }
+        // ln2br
+        data = data.replace(/\n/g, '<br>');
+        res.send(data);
+    });
+});
+
 app.listen(port);
 
 // Create a new client instance
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers] });
 
 // When the client is ready, run this code (only once)
 

@@ -16,15 +16,15 @@ WORKDIR /app
 ENV NODE_ENV production
 
 RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN adduser --system --uid 1001 nodejs
 
-COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
-COPY --chown=nextjs:nodejs package.json .
+COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
+COPY --chown=nodejs:nodejs package.json .
 RUN npm install --omit=dev
 
-RUN chown -R nextjs:nodejs /app
+RUN chown -R nodejs:nodejs /app
 
-USER nextjs
+USER nodejs
 
 EXPOSE 3000
 
