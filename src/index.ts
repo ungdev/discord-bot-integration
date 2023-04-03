@@ -49,6 +49,7 @@ app.get('/logs', (req: Request, res: Response) => {
     fs.readFile(__dirname + '/../logs.txt', 'utf8', (err, data) => {
         if (err) {
             console.error(err);
+            res.send(err);
             return;
         }
         // ln2br
