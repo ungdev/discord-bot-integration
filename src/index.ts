@@ -46,6 +46,16 @@ app.get('/db', (req: Request, res: Response) => {
 
 // Temporary code
 app.get('/logs', (req: Request, res: Response) => {
+    // Create logs.txt file if not exists
+    if (!fs.existsSync(__dirname + '/logs.txt')) {
+        fs.writeFile(__dirname + '/logs.txt', '', function (err) {
+            if (err) {
+                res.send(err);
+                return;
+            }
+        });
+    }
+
     fs.readFile(__dirname + '/logs.txt', 'utf8', (err, data) => {
         if (err) {
             console.error(err);
