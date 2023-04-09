@@ -21,9 +21,6 @@ RUN adduser --system --uid 1001 nodejs
 COPY --from=builder --chown=nodejs:nodejs /app/dist .
 COPY --chown=nodejs:nodejs package.json .
 
-RUN sh -c "touch /app/logs.txt"
-RUN sh -c "touch /app/storage.json"
-
 RUN chown -R nodejs:nodejs /app
 
 RUN npm install --omit=dev

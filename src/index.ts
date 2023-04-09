@@ -37,7 +37,7 @@ const app = express();
 const port = 3000;
 
 app.get('/', (req: Request, res: Response) => {
-	res.send('OK !');
+	res.send('OK');
 });
 
 app.get('/db', (req: Request, res: Response) => {
@@ -64,10 +64,7 @@ app.listen(port);
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers] });
 
 // When the client is ready, run this code (only once)
-
 client.once('ready', async () => {
-    log('Ready!');
-
     // Create logs.txt file if not exists
     if (!fs.existsSync(__dirname + '/logs.txt')) {
         fs.writeFile(__dirname + '/logs.txt', '', function (err) {
@@ -76,6 +73,17 @@ client.once('ready', async () => {
             }
         });
     }
+
+    // Create storage.json file if not exists
+    if (!fs.existsSync(__dirname + '/storage.json')) {
+        fs.writeFile(__dirname + '/storage.json', '', function (err) {
+            if (err) {
+                error(`${err}`);
+            }
+        });
+    }
+
+    log('Ready!');
 
     // Sync JSON DB with local file
     try {
