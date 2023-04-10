@@ -44,6 +44,12 @@ app.get('/db', (req: Request, res: Response) => {
 	res.send(JSON.stringify(global.db.JSON()));
 });
 
+app.post('/db', (req: Request, res: Response) => {
+    // replace db with json value from request
+    global.db.JSON(req.body.json);
+    res.send('OK');
+});
+
 // Temporary code to get logs
 app.get('/logs', (req: Request, res: Response) => {
     fs.readFile(__dirname + '/data/logs.txt', 'utf8', (err, data) => {
