@@ -40,49 +40,57 @@ async function reset() {
 
             // TEMP: Rename all member from Prenom Nom - Role to Prenom Nom
             if (member.displayName.includes('-')) {
-                log(`Reset: Renaming member ${member.user.username}...`)
-                await member.setNickname(member.displayName.split('-')[0].trim());
+                log(`Reset: Renaming member ${member.user.username}...`);
+                await member.setNickname(member.displayName.split('-')[0].trim()).catch((error: any) => {
+                    error(error);
+                });
             }   
         }),
     );
 
+    log(`Reset: Deleting ${global.data.factionsCategoryIds.length} categories...`);
     await Promise.all(
         global.data.factionsCategoryIds.map(async (categoryId: number) => {
-            try {
-                // Get category
-                const category = await global.data.guild?.channels.cache.get(categoryId.toString()) as CategoryChannel;
-                if (category !== undefined) {
-                    log(`Reset: Deleting category ${category.name}...`)
-                    // Delete all channels
-                    await Promise.all(
-                        category.children.cache.map(async (channel: any) => {
-                            log(`Reset: Deleting channel ${channel.name}...`)
-                            await channel.delete();
-                        }),
-                    );
+            // Get category
+            const category = await global.data.guild?.channels.cache.get(categoryId.toString()) as CategoryChannel;
+            if (category !== undefined && category !== null) {
+                log(`Reset: Deleting category ${category.name}...`)
+                // Delete all channels
+                await Promise.all(
+                    category.children.cache.map(async (channel: any) => {
+                        log(`Reset: Deleting channel ${channel.name}...`)
+                        await channel.delete().catch((error: any) => {
+                            error(error);
+                        });
+                    }),
+                );
 
-                    await category.delete();
-                }
-            } catch (error: any) {
-                error(error);
+                await category.delete().catch((error: any) => {
+                    error(error);
+                });
             }
         }),
     );
 
+    log(`Reset: Deleting ${global.data.rolesCreatedIds.length} roles...`);
     await Promise.all(
+
         global.data.rolesCreatedIds.map(async (roleId: number) => {
-            // Remove and handle error
-            try {
+            const role = await global.data.guild?.roles.cache.get(roleId.toString());
+            if(role !== undefined && role !== null)   {
+                // Remove and handle error
                 log(`Reset: Deleting role ${roleId}...`)
-                await global.data.guild?.roles.cache.get(roleId.toString())?.delete();
-            } catch (error: any) {
-                error(error);
+                await role.delete().catch((error: any) => {
+                    error(error);
+                });
             }
+            
         }),
     );
     
     global.data.factionsCategoryIds = [];
     global.data.rolesCreatedIds = [];
-    global.db.set('roles', []);
     global.db.set('factions', []);
+    global.db.set('roles', []);
+    global.db.sync();
 }
