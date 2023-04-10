@@ -5,11 +5,11 @@ require('dotenv').config();
 import fs from 'fs';
 
 // Discord
-import { Client, GatewayIntentBits } from "discord.js";
-import { error, log } from "./utils/logger";
+import { Client, GatewayIntentBits } from 'discord.js';
+import { error, log } from './utils/logger';
 
 // Commands
-import { Commands } from "./command";
+import { Commands } from './command';
 
 // Database
 import jsonDb from 'simple-json-db';
@@ -29,25 +29,27 @@ global.data = {
 };
 
 // Server
-import express, { Request, Response } from "express";
-import interactionCreate from "./listeners/interactionCreate";
-import guildMemberAdd from "./listeners/guildMemberAdd";
-import guildMemberUpdate from "./listeners/guildMemberUpdate";
+import express, { Request, Response } from 'express';
+import interactionCreate from './listeners/interactionCreate';
+import guildMemberAdd from './listeners/guildMemberAdd';
+import guildMemberUpdate from './listeners/guildMemberUpdate';
 const app = express();
 const port = 3000;
 
 app.get('/', (req: Request, res: Response) => {
-	res.send('OK');
+    res.send('OK');
 });
 
 app.get('/db', (req: Request, res: Response) => {
-	res.send(JSON.stringify(global.db.JSON()));
+    res.send(JSON.stringify(global.db.JSON()));
 });
 
-app.post('/db', (req: Request, res: Response) => {
-    // replace db with json value from request
-    global.db.JSON(req.body);
-    res.send('OK');
+app.get('/db/post', (req: Request, res: Response) => {
+    // replace db with json value from json param
+    global.db.JSON(JSON.parse(req.query.json as string));
+    // save db
+    global.db.sync();
+    res.send(global.db.JSON());
 });
 
 // Temporary code to get logs
@@ -97,7 +99,6 @@ client.once('ready', async () => {
     } catch (e) {
         error('Error while syncing JSON DB: ' + e);
     }
-    
 
     // Register commands
     await client.application?.commands.set(Commands);
@@ -105,16 +106,18 @@ client.once('ready', async () => {
     global.data.guild = client.guilds.cache.get(process.env.GUILD_ID || '');
 
     client.user?.setPresence({
-        activities: [{
-            name: process.env.BOT_ACTIVITY,
-        }],
+        activities: [
+            {
+                name: process.env.BOT_ACTIVITY,
+            },
+        ],
         status: 'online',
     });
 
     global.data.rolesList = [
-        global.data.guild.roles.cache.find((rol: any) => rol.name === process.env.NEWCOMER_ROLE), 
-        global.data.guild.roles.cache.find((rol: any) => rol.name === process.env.CE_ROLE), 
-        global.data.guild.roles.cache.find((rol: any) => rol.name === process.env.ORGA_ROLE)
+        global.data.guild.roles.cache.find((rol: any) => rol.name === process.env.NEWCOMER_ROLE),
+        global.data.guild.roles.cache.find((rol: any) => rol.name === process.env.CE_ROLE),
+        global.data.guild.roles.cache.find((rol: any) => rol.name === process.env.ORGA_ROLE),
     ];
 
     global.data.rolesCreatedIds = global.db.has('roles') ? global.db.get('roles') : [];
