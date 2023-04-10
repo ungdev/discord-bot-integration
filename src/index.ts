@@ -55,7 +55,7 @@ app.get('/reset', (req: Request, res: Response) => {
 
     reset();
 
-    res.send("OK");
+    res.send('OK');
 });
 
 app.get('/db/post', (req: Request, res: Response) => {

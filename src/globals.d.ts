@@ -1,4 +1,4 @@
-import { Guild, Role } from "discord.js";
+import { Guild, Role } from 'discord.js';
 
 declare global {
     var data: {

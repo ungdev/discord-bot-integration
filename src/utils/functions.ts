@@ -1,6 +1,6 @@
 import { ChannelType, GuildMember, PermissionsBitField } from 'discord.js';
 import { callApi } from './api';
-import { log } from './logger';
+import { log, error } from './logger';
 
 // Add Faction and team Role for newcomers and ce
 export async function addTeamRole(teamId: number) {
@@ -39,7 +39,7 @@ export async function addCategory(name: string) {
 // Create a Channel and add it to a Category
 export async function addChannel(team: any, cat: any) {
     const permissionOverwrites = [] as any;
-    
+
     // Modify permissions for the team role and disable view for everyone
     const listRolesCanView = [process.env.COORDS_ROLE, process.env.CE_RESPO, process.env.DEV_ROLE];
 
@@ -49,13 +49,12 @@ export async function addChannel(team: any, cat: any) {
             allow: PermissionsBitField.Flags.ViewChannel,
         });
     }),
-
-    permissionOverwrites.push({
-        id: global.data.guild?.roles.cache.find(
-            (rol: any) => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim(),
-        )?.id,
-        allow: PermissionsBitField.Flags.ViewChannel,
-    });
+        permissionOverwrites.push({
+            id: global.data.guild?.roles.cache.find(
+                (rol: any) => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim(),
+            )?.id,
+            allow: PermissionsBitField.Flags.ViewChannel,
+        });
 
     permissionOverwrites.push({
         id: global.data.guild?.id,
@@ -178,7 +177,7 @@ export async function renameMember(member: any, userSite: any, roleName: any) {
 
     // const roleSuffix = (roleName === null) ? '' : ' - ' + roleName;
 
-    await member.setNickname(name).catch((error: any) => {
-        error(error);
+    await member.setNickname(name).catch((err: any) => {
+        error(err);
     });
 }

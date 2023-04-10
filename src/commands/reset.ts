@@ -1,4 +1,4 @@
-import { log } from '../utils/logger';
+import { error, log } from '../utils/logger';
 import { CommandInteraction, Client, GuildMember, Role, ApplicationCommandType, CategoryChannel } from 'discord.js';
 import { Command } from '../command';
 
@@ -18,9 +18,9 @@ export const Reset: Command = {
 export async function reset() {
     // Get all members of the guild
     const members = await global.data.guild?.members.fetch();
-    if(members === undefined) return;
-    
-    log(`Reset: Found ${members?.size} members in the guild!`)
+    if (members === undefined) return;
+
+    log(`Reset: Found ${members?.size} members in the guild!`);
     await Promise.all(
         members.map(async (member: GuildMember) => {
             // Get all roles of the member
@@ -30,9 +30,9 @@ export async function reset() {
             await Promise.all(
                 roles.map(async (role: Role) => {
                     if (global.data.rolesList.map((o: any) => o.id).includes(role.id)) {
-                        log(`Reset: Removing role ${role.name} from member ${member.user.username}...`)
-                        await member.roles.remove(role).catch((error: any) => {
-                            error(error);
+                        log(`Reset: Removing role ${role.name} from member ${member.user.username}...`);
+                        await member.roles.remove(role).catch((err: any) => {
+                            error(err);
                         });
                     }
                 }),
@@ -40,11 +40,13 @@ export async function reset() {
 
             // TEMP: Rename all member from Prenom Nom - Role to Prenom Nom
             if (member.displayName.includes('-')) {
-                log(`Reset: Renaming member ${member.user.username}...`);
-                await member.setNickname(member.displayName.split('-')[0].trim()).catch((error: any) => {
-                    error(error);
+                log(
+                    `Reset: Renaming member ${member.displayName} for user "${member.user.username}#${member.user.discriminator}"...`,
+                );
+                await member.setNickname(member.displayName.split('-')[0].trim()).catch((err: any) => {
+                    error(err);
                 });
-            }   
+            }
         }),
     );
 
@@ -52,21 +54,21 @@ export async function reset() {
     await Promise.all(
         global.data.factionsCategoryIds.map(async (categoryId: number) => {
             // Get category
-            const category = await global.data.guild?.channels.cache.get(categoryId.toString()) as CategoryChannel;
+            const category = (await global.data.guild?.channels.cache.get(categoryId.toString())) as CategoryChannel;
             if (category !== undefined && category !== null) {
-                log(`Reset: Deleting category ${category.name}...`)
+                log(`Reset: Deleting category ${category.name}...`);
                 // Delete all channels
                 await Promise.all(
                     category.children.cache.map(async (channel: any) => {
-                        log(`Reset: Deleting channel ${channel.name}...`)
-                        await channel.delete().catch((error: any) => {
-                            error(error);
+                        log(`Reset: Deleting channel ${channel.name}...`);
+                        await channel.delete().catch((err: any) => {
+                            error(err);
                         });
                     }),
                 );
 
-                await category.delete().catch((error: any) => {
-                    error(error);
+                await category.delete().catch((err: any) => {
+                    error(err);
                 });
             }
         }),
@@ -74,20 +76,18 @@ export async function reset() {
 
     log(`Reset: Deleting ${global.data.rolesCreatedIds.length} roles...`);
     await Promise.all(
-
         global.data.rolesCreatedIds.map(async (roleId: number) => {
             const role = await global.data.guild?.roles.cache.get(roleId.toString());
-            if(role !== undefined && role !== null)   {
+            if (role !== undefined && role !== null) {
                 // Remove and handle error
-                log(`Reset: Deleting role ${roleId}...`)
-                await role.delete().catch((error: any) => {
-                    error(error);
+                log(`Reset: Deleting role ${roleId}...`);
+                await role.delete().catch((err: any) => {
+                    error(err);
                 });
             }
-            
         }),
     );
-    
+
     global.data.factionsCategoryIds = [];
     global.data.rolesCreatedIds = [];
     global.db.set('factions', []);
