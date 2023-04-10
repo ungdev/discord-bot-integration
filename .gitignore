@@ -1,5 +1,5 @@
 .env
 node_modules
-storage.json
+./storage.json
 dist
-logs.txt
+./logs.txt
