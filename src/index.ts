@@ -45,19 +45,6 @@ app.get('/db', (req: Request, res: Response) => {
     res.send(JSON.stringify(global.db.JSON()));
 });
 
-app.get('/reset', (req: Request, res: Response) => {
-    // reset logs
-    fs.writeFile(__dirname + '/data/logs.txt', '', function (err) {
-        if (err) {
-            console.error(err);
-        }
-    });
-
-    reset();
-
-    res.send('OK');
-});
-
 // Temporary code to get logs
 app.get('/logs', (req: Request, res: Response) => {
     fs.readFile(__dirname + '/data/logs.txt', 'utf8', (err, data) => {

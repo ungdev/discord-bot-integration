@@ -32,6 +32,4 @@ async function sync() {
     ).catch((error) => {
         error('Sync roles and names failed!\n ' + error);
     });
-
-    log('Finished syncRolesAndNames');
 }

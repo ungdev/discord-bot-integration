@@ -37,16 +37,6 @@ export async function reset() {
                     }
                 }),
             );
-
-            // TEMP: Rename all member from Prenom Nom - Role to Prenom Nom
-            if (member.displayName.includes('-')) {
-                log(
-                    `Reset: Renaming member ${member.displayName} for user "${member.user.username}#${member.user.discriminator}"...`,
-                );
-                await member.setNickname(member.displayName.split('-')[0].trim()).catch((err: any) => {
-                    error(err);
-                });
-            }
         }),
     );
 
