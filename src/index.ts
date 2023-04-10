@@ -58,14 +58,6 @@ app.get('/reset', (req: Request, res: Response) => {
     res.send('OK');
 });
 
-app.get('/db/post', (req: Request, res: Response) => {
-    // replace db with json value from json param
-    global.db.JSON(JSON.parse(req.query.json as string));
-    // save db
-    global.db.sync();
-    res.send(global.db.JSON());
-});
-
 // Temporary code to get logs
 app.get('/logs', (req: Request, res: Response) => {
     fs.readFile(__dirname + '/data/logs.txt', 'utf8', (err, data) => {
