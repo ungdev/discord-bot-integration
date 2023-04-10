@@ -1,11 +1,13 @@
+import { Guild, Role } from "discord.js";
+
 declare global {
     var data: {
         bearer: any;
         bearerConfig: any;
-        guild: any;
+        guild: Guild?;
         factions: any;
         teams: any;
-        rolesList: any;
+        rolesList: List<Role>;
         rolesCreatedIds: any;
         factionsCategoryIds: any;
     };

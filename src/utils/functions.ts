@@ -1,3 +1,4 @@
+import { ChannelType, GuildMember, PermissionsBitField } from 'discord.js';
 import { callApi } from './api';
 import { log } from './logger';
 
@@ -10,81 +11,70 @@ export async function addTeamRole(teamId: number) {
     const team = await callApi(teamId);
 
     return [
-        global.data.guild.roles.cache.find((rol: any) => rol.name === team.name),
-        global.data.guild.roles.cache.find((rol: any) => rol.name === team.faction_name),
+        global.data.guild?.roles.cache.find((rol: any) => rol.name === team.name),
+        global.data.guild?.roles.cache.find((rol: any) => rol.name === team.faction_name),
     ];
 }
 
 // Create a Category
 export async function addCategory(name: string) {
-    const category = await global.data.guild.channels.create(name, {
-        type: 'GUILD_CATEGORY',
-        permissions: [
-            'VIEW_CHANNEL',
-            'SEND_MESSAGES',
-            'READ_MESSAGES',
-            'MANAGE_MESSAGES',
-            'MANAGE_ROLES',
-            'MANAGE_CHANNELS',
-        ],
+    const category = await global.data.guild?.channels.create({
+        name: name,
+        type: ChannelType.GuildCategory,
+        // permissionOverwrites: [
+        //     'VIEW_CHANNEL',
+        //     'SEND_MESSAGES',
+        //     'READ_MESSAGES',
+        //     'MANAGE_MESSAGES',
+        //     'MANAGE_ROLES',
+        //     'MANAGE_CHANNELS',
+        // ],
         position: 0,
     });
-    global.data.factionsCategoryIds.push(category.id);
+    global.data.factionsCategoryIds.push(category?.id);
     global.db.set('factions', global.data.factionsCategoryIds);
     return category;
 }
 
 // Create a Channel and add it to a Category
 export async function addChannel(team: any, cat: any) {
-    const channel = await global.data.guild.channels.create(team.name, {
-        type: 'text',
-        permissions: [
-            'VIEW_CHANNEL',
-            'SEND_MESSAGES',
-            'READ_MESSAGES',
-            'MANAGE_MESSAGES',
-            'MANAGE_ROLES',
-            'MANAGE_CHANNELS',
-        ],
+    const permissionOverwrites = [] as any;
+    
+    // Modify permissions for the team role and disable view for everyone
+    const listRolesCanView = [process.env.COORDS_ROLE, process.env.CE_RESPO, process.env.DEV_ROLE];
+
+    listRolesCanView.map(async (role) => {
+        permissionOverwrites.push({
+            id: global.data.guild?.roles.cache.find((rol: any) => rol.name === role)?.id,
+            allow: PermissionsBitField.Flags.ViewChannel,
+        });
+    }),
+
+    permissionOverwrites.push({
+        id: global.data.guild?.roles.cache.find(
+            (rol: any) => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim(),
+        )?.id,
+        allow: PermissionsBitField.Flags.ViewChannel,
+    });
+
+    permissionOverwrites.push({
+        id: global.data.guild?.id,
+        deny: PermissionsBitField.Flags.ViewChannel,
+    });
+
+    const channel = await global.data.guild?.channels.create({
+        name: team.name,
+        type: ChannelType.GuildText,
+        permissionOverwrites: permissionOverwrites,
         position: 0,
     });
 
-    await channel.setParent(cat.find((c: any) => c.name.toLowerCase() === team.faction.name.toLowerCase()).id);
-
-    // Modify permissions for the team role and disable view form everyone
-    const listRolesCanView = [process.env.COORDS_ROLE, process.env.CE_RESPO, process.env.DEV_ROLE];
-    await Promise.all(
-        listRolesCanView.map(async (role) => {
-            await channel.permissionOverwrites.edit(
-                global.data.guild.roles.cache.find((rol: any) => rol.name === role).id,
-                {
-                    VIEW_CHANNEL: true,
-                },
-            );
-        }),
-    );
-
-    try {
-        await channel.permissionOverwrites.edit(
-            global.data.guild.roles.cache.find(
-                (rol: any) => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim(),
-            ).id,
-            {
-                VIEW_CHANNEL: true,
-            },
-        );
-    } catch (error: any) {
-        error(error);
-    }
-
-    await channel.permissionOverwrites.edit(global.data.guild.id, {
-        VIEW_CHANNEL: false,
-    });
+    await channel?.setParent(cat.find((c: any) => c.name.toLowerCase() === team.faction.name.toLowerCase()).id);
 }
 
 // Create a Guild Role
 export async function addRole(roleName: string) {
-    await global.data.guild.roles
+    await global.data.guild?.roles
         .create({
             name: roleName,
             color: '#000000',
@@ -101,7 +91,7 @@ export async function addRole(roleName: string) {
 }
 
 // Function to change a role or a name
-export async function changeRoleAndName(member: any, listStudents: any = null, isSync = false) {
+export async function changeRoleAndName(member: GuildMember, listStudents: any = null, isSync = false) {
     const { user } = member;
     if (!user.bot) {
         const tag = `${user.username}#${user.discriminator}`;
@@ -118,7 +108,7 @@ export async function changeRoleAndName(member: any, listStudents: any = null, i
             const u = userSite[0];
 
             // Can't change owner's name
-            if (member.user.id !== global.data.guild.ownerId) {
+            if (member.user.id !== global.data.guild?.ownerId) {
                 /* -----------------------------
 							ADD ROLES
 				----------------------------- */

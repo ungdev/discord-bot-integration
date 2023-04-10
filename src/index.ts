@@ -5,7 +5,7 @@ require('dotenv').config();
 import fs from 'fs';
 
 // Discord
-import { Client, GatewayIntentBits } from 'discord.js';
+import { Client, GatewayIntentBits, Guild } from 'discord.js';
 import { error, log } from './utils/logger';
 
 // Commands
@@ -103,7 +103,7 @@ client.once('ready', async () => {
     // Register commands
     await client.application?.commands.set(Commands);
 
-    global.data.guild = client.guilds.cache.get(process.env.GUILD_ID || '');
+    global.data.guild = client.guilds.cache.get(process.env.GUILD_ID || '') as Guild;
 
     client.user?.setPresence({
         activities: [

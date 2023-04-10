@@ -1,10 +1,11 @@
 import { log } from '../utils/logger';
-import { CommandInteraction, Client } from 'discord.js';
+import { CommandInteraction, Client, GuildMember, Role, ApplicationCommandType, CategoryChannel } from 'discord.js';
 import { Command } from '../command';
 
 export const Reset: Command = {
     name: 'reset',
     description: 'Reset roles given by the bot, roles and channels',
+    type: ApplicationCommandType.ChatInput,
     run: async (client: Client, interaction: CommandInteraction) => {
         log('Reset started!');
         await interaction.reply('Reset in progress...');
@@ -16,68 +17,66 @@ export const Reset: Command = {
 
 async function reset() {
     // Get all members of the guild
-    const members = await globalThis.data.guild.members.fetch();
+    const members = await global.data.guild?.members.fetch();
+    if(members === undefined) return;
+    
+    log(`Reset: Found ${members?.size} members in the guild!`)
     await Promise.all(
-        members.map(async (member: any) => {
-            // Can't change owner's name
-            if (member.user.id !== globalThis.data.guild.ownerId) {
-                /* -----------------------------
-						REMOVE ROLES
-			----------------------------- */
-
-                const rolesList = [process.env.NEWCOMER_ROLE, process.env.CE_ROLE, process.env.ORGA_ROLE];
-
-                // Remove old roles
-                rolesList.forEach((string) => {
-                    const role = globalThis.data.guild.roles.cache.find((rol: any) => rol.name === string);
-                    if (role === undefined) {
-                        log(`Role "${string}" doesn't exist in this guild!`);
-                    } else {
-                        member.roles.remove(role).catch((error: any) => {
+        members.map(async (member: GuildMember) => {
+            // Get all roles of the member
+            const roles = member.roles.cache;
+            log(`Reset: Found ${roles.size} roles for member ${member.user.username}!`)
+            // Remove all roles given by the bot
+            await Promise.all(
+                roles.map(async (role: Role) => {
+                    if (global.data.rolesList.map((o: any) => o.id).includes(role.id)) {
+                        log(`Reset: Removing role ${role.name} from member ${member.user.username}...`)
+                        await member.roles.remove(role).catch((error: any) => {
                             error(error);
                         });
                     }
-                });
-            }
+                }),
+            );
         }),
     );
 
     await Promise.all(
-        globalThis.data.factionsCategoryIds.map(async (categoryId: number) => {
+        global.data.factionsCategoryIds.map(async (categoryId: number) => {
             try {
-                const category = await globalThis.data.guild.channels.cache.get(categoryId);
-                await Promise.all(
-                    category.children.map(async (channel: any) => {
-                        try {
+                // Get category
+                const category = await global.data.guild?.channels.cache.get(categoryId.toString()) as CategoryChannel;
+                if (category !== undefined) {
+                    log(`Reset: Deleting category ${category.name}...`)
+                    // Delete all channels
+                    await Promise.all(
+                        category.children.cache.map(async (channel: any) => {
+                            log(`Reset: Deleting channel ${channel.name}...`)
                             await channel.delete();
-                        } catch (error: any) {
-                            error(error);
-                        }
-                    }),
-                );
+                        }),
+                    );
 
-                await category.delete();
+                    await category.delete();
+                }
             } catch (error: any) {
                 error(error);
             }
-
-            globalThis.data.factionsCategoryIds.splice(globalThis.data.factionsCategoryIds.indexOf(categoryId), 1);
         }),
     );
 
     await Promise.all(
-        globalThis.data.rolesCreatedIds.map(async (roleId: number) => {
+        global.data.rolesCreatedIds.map(async (roleId: number) => {
             // Remove and handle error
             try {
-                await globalThis.data.guild.roles.cache.get(roleId).delete();
+                log(`Reset: Deleting role ${roleId}...`)
+                await global.data.guild?.roles.cache.get(roleId.toString())?.delete();
             } catch (error: any) {
                 error(error);
             }
-
-            globalThis.data.rolesCreatedIds.splice(globalThis.data.rolesCreatedIds.indexOf(roleId), 1);
         }),
     );
-
+    
+    global.data.factionsCategoryIds = [];
+    global.data.rolesCreatedIds = [];
     global.db.set('roles', []);
     global.db.set('factions', []);
 }

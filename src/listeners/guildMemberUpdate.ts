@@ -1,4 +1,4 @@
-import { Client } from 'discord.js';
+import { AuditLogEvent, Client } from 'discord.js';
 import { callApi } from '../utils/api';
 import { log } from '../utils/logger';
 import { renameMember } from '../utils/functions';
@@ -9,7 +9,7 @@ export default (client: Client): void => {
         if (oldMember.roles.cache.size < newMember.roles.cache.size) {
             const fetchedLogs = await oldMember.guild.fetchAuditLogs({
                 limit: 1,
-                type: 'MEMBER_ROLE_UPDATE',
+                type: AuditLogEvent.MemberRoleUpdate,
             });
 
             const roleAddLog = fetchedLogs.entries.first();

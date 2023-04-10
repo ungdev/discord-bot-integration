@@ -1,13 +1,14 @@
 import { log } from '../utils/logger';
 import { callApi } from '../utils/api';
 import { changeRoleAndName } from '../utils/functions';
-import { GuildMember } from 'discord.js';
+import { ApplicationCommandType, GuildMember } from 'discord.js';
 import { Command } from '../command';
 import { CommandInteraction, Client } from 'discord.js';
 
 export const Sync: Command = {
     name: 'sync',
     description: 'Sync automatically roles',
+    type: ApplicationCommandType.ChatInput,
     run: async (client: Client, interaction: CommandInteraction) => {
         log('Sync started!');
         await interaction.reply('Sync in progress...');
@@ -19,7 +20,8 @@ export const Sync: Command = {
 
 // Function to sync every roles and names of the guild
 async function sync() {
-    const members = await globalThis.data.guild.members.fetch();
+    const members = await global.data.guild?.members.fetch();
+    if (members === undefined) return;
 
     const listStudents = await callApi();
 
