@@ -1,5 +1,4 @@
-# Production image, copy all the files and run next
-FROM node:18-alpine AS runner
+FROM node:18-alpine
 WORKDIR /app
 
 ENV NODE_ENV production
