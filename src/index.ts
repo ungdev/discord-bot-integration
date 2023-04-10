@@ -15,7 +15,7 @@ import { Commands } from "./command";
 import jsonDb from 'simple-json-db';
 
 // Global variables
-global.db = new jsonDb(__dirname + '/storage.json');
+global.db = new jsonDb(__dirname + '/data/storage.json');
 
 global.data = {
     bearer: null,
@@ -47,8 +47,8 @@ app.get('/db', (req: Request, res: Response) => {
 // Temporary code
 app.get('/logs', (req: Request, res: Response) => {
     // Create logs.txt file if not exists
-    if (!fs.existsSync(__dirname + '/logs.txt')) {
-        fs.writeFile(__dirname + '/logs.txt', '', function (err) {
+    if (!fs.existsSync(__dirname + '/data/logs.txt')) {
+        fs.writeFile(__dirname + '/data/logs.txt', '', function (err) {
             if (err) {
                 res.send("logs.txt creation error" + err);
                 return;
@@ -56,7 +56,7 @@ app.get('/logs', (req: Request, res: Response) => {
         });
     }
 
-    fs.readFile(__dirname + '/logs.txt', 'utf8', (err, data) => {
+    fs.readFile(__dirname + '/data/logs.txt', 'utf8', (err, data) => {
         if (err) {
             console.error(err);
             res.send("open error" + err);
@@ -76,8 +76,8 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 // When the client is ready, run this code (only once)
 client.once('ready', async () => {
     // Create logs.txt file if not exists
-    if (!fs.existsSync(__dirname + '/logs.txt')) {
-        fs.writeFile(__dirname + '/logs.txt', '', function (err) {
+    if (!fs.existsSync(__dirname + '/data/logs.txt')) {
+        fs.writeFile(__dirname + '/data/logs.txt', '', function (err) {
             if (err) {
                 error(`${err}`);
             }
@@ -85,8 +85,8 @@ client.once('ready', async () => {
     }
 
     // Create storage.json file if not exists
-    if (!fs.existsSync(__dirname + '/storage.json')) {
-        fs.writeFile(__dirname + '/storage.json', '', function (err) {
+    if (!fs.existsSync(__dirname + '/data/storage.json')) {
+        fs.writeFile(__dirname + '/data/storage.json', '', function (err) {
             if (err) {
                 error(`${err}`);
             }
