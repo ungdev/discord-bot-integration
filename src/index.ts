@@ -46,7 +46,7 @@ app.get('/db', (req: Request, res: Response) => {
 
 app.post('/db', (req: Request, res: Response) => {
     // replace db with json value from request
-    global.db.JSON(req.body.json);
+    global.db.JSON(req.body);
     res.send('OK');
 });
 
