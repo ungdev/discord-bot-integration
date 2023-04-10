@@ -133,3 +133,8 @@ guildMemberUpdate(client);
 
 // Login to Discord with your client's token
 client.login(process.env.BOT_TOKEN);
+
+// Process events on unhandledException
+process.on('uncaughtException', function (err) {
+    error('uncaughtException: ' + err);
+});
