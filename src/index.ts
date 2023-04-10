@@ -44,22 +44,12 @@ app.get('/db', (req: Request, res: Response) => {
 	res.send(JSON.stringify(global.db.JSON()));
 });
 
-// Temporary code
+// Temporary code to get logs
 app.get('/logs', (req: Request, res: Response) => {
-    // Create logs.txt file if not exists
-    if (!fs.existsSync(__dirname + '/data/logs.txt')) {
-        fs.writeFile(__dirname + '/data/logs.txt', '', function (err) {
-            if (err) {
-                res.send("logs.txt creation error" + err);
-                return;
-            }
-        });
-    }
-
     fs.readFile(__dirname + '/data/logs.txt', 'utf8', (err, data) => {
         if (err) {
             console.error(err);
-            res.send("open error" + err);
+            res.send(err);
             return;
         }
         // ln2br
