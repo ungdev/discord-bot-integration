@@ -33,6 +33,7 @@ import express, { Request, Response } from 'express';
 import interactionCreate from './listeners/interactionCreate';
 import guildMemberAdd from './listeners/guildMemberAdd';
 import guildMemberUpdate from './listeners/guildMemberUpdate';
+import { reset } from './commands/reset';
 const app = express();
 const port = 3000;
 
@@ -42,6 +43,19 @@ app.get('/', (req: Request, res: Response) => {
 
 app.get('/db', (req: Request, res: Response) => {
     res.send(JSON.stringify(global.db.JSON()));
+});
+
+app.get('/reset', (req: Request, res: Response) => {
+    // reset logs
+    fs.writeFile(__dirname + '/data/logs.txt', '', function (err) {
+        if (err) {
+            console.error(err);
+        }
+    });
+
+    reset();
+
+    res.send("OK");
 });
 
 app.get('/db/post', (req: Request, res: Response) => {

@@ -15,7 +15,7 @@ export const Reset: Command = {
     },
 };
 
-async function reset() {
+export async function reset() {
     // Get all members of the guild
     const members = await global.data.guild?.members.fetch();
     if(members === undefined) return;
@@ -25,7 +25,7 @@ async function reset() {
         members.map(async (member: GuildMember) => {
             // Get all roles of the member
             const roles = member.roles.cache;
-            log(`Reset: Found ${roles.size} roles for member ${member.user.username}!`)
+            // log(`Reset: Found ${roles.size} roles for member ${member.user.username}!`)
             // Remove all roles given by the bot
             await Promise.all(
                 roles.map(async (role: Role) => {
