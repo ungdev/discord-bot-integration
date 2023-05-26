@@ -1,4 +1,4 @@
-import { log } from '../utils/logger';
+import { log, error } from '../utils/logger';
 import { callApi } from '../utils/api';
 import { changeRoleAndName } from '../utils/functions';
 import { ApplicationCommandType, GuildMember } from 'discord.js';
@@ -29,7 +29,7 @@ async function sync() {
         members.map(async (member: GuildMember) => {
             await changeRoleAndName(member, listStudents, true);
         }),
-    ).catch((error) => {
-        error('Sync roles and names failed!\n ' + error);
+    ).catch((err) => {
+        error('Sync roles and names failed!\n ' + err);
     });
 }
