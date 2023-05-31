@@ -86,11 +86,13 @@ export async function addRole(roleName: string) {
             global.db.set('roles', global.data.rolesCreatedIds);
             return 0;
         })
-        .catch(console.error);
+        .catch((err: any) => {
+            error(`Failed to create role ${roleName}:\n${err}`);
+        });
 }
 
 // Function to change a role or a name
-export async function changeRoleAndName(member: GuildMember, listStudents: any = null, isSync = false) {
+export async function changeRoleAndName(member: GuildMember, listStudents: any = null, isSync = false, indexText = '') {
     const { user } = member;
     if (!user.bot) {
         const tag = `${user.username}#${user.discriminator}`;
@@ -128,10 +130,18 @@ export async function changeRoleAndName(member: GuildMember, listStudents: any =
                 }
 
                 // Remove old roles
-                await member.roles.remove(global.data.rolesList).catch(console.error);
+                await member.roles.remove(global.data.rolesList).catch(
+                    (err: any) => {
+                        error('Remove roles failed for ' + member.user.username + ' :\n' + err);
+                    }
+                );
 
                 // Add new roles
-                await member.roles.add(rolesToAdd).catch(console.error);
+                await member.roles.add(rolesToAdd).catch(
+                    (err: any) => {
+                        error('Add roles failed for ' + member.user.username + ' :\n' + err);
+                    }
+                );
 
                 /* -----------------------------
 							RENAME
@@ -140,14 +150,14 @@ export async function changeRoleAndName(member: GuildMember, listStudents: any =
                     await renameMember(member, u, rolesToAdd[0].name);
                 }
 
-                log(`${tag} has been updated`);
+                log(`${indexText} ${tag} has been updated`);
             }
         } else if (!isSync) {
             member.send(
                 `Salut <@${user.id}>, tu dois t'inscrire sur le site de l'Intégration (https://integration.utt.fr/) en renseignant ton tag discord pour obtenir tes rôles et avoir accès à tous les channels de discussion !`,
             );
         } else {
-            log(`${tag} is not in the list`);
+            log(`${indexText} ${tag} is not in the list`);
         }
     }
 }
@@ -178,6 +188,6 @@ export async function renameMember(member: any, userSite: any, roleName: any) {
     // const roleSuffix = (roleName === null) ? '' : ' - ' + roleName;
 
     await member.setNickname(name).catch((err: any) => {
-        error(err);
+        error('Rename failed for ' + member.user.username + ' :\n' + err);
     });
 }

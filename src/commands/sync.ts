@@ -23,11 +23,13 @@ async function sync() {
     const members = await global.data.guild?.members.fetch();
     if (members === undefined) return;
 
+    const membersArray = Array.from(members.values()) as GuildMember[];
+
     const listStudents = await callApi();
 
     await Promise.all(
-        members.map(async (member: GuildMember) => {
-            await changeRoleAndName(member, listStudents, true);
+        membersArray.map(async (member: GuildMember, index: number) => {
+            await changeRoleAndName(member, listStudents, true, '[' + index+1 + '/' + membersArray.length + ']');
         }),
     ).catch((err) => {
         error('Sync roles and names failed!\n ' + err);
