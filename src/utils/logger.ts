@@ -1,7 +1,10 @@
 const fs = require('fs');
 
 export function log(message: string) {
-    const timestamp = new Date().toLocaleString();
+    const timestamp = new Date().toLocaleString(undefined, {
+        timeZone: 'Europe/Paris',
+        hour12: false,
+    });
     const log = `[${timestamp}] ${message}`;
     console.log(log);
 
