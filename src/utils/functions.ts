@@ -147,7 +147,8 @@ export async function changeRoleAndName(member: GuildMember, listStudents: any =
 							RENAME
 				----------------------------- */
                 if (rolesToAdd[0] !== undefined) {
-                    await renameMember(member, u, rolesToAdd[0].name);
+                    // await renameMember(member, u, rolesToAdd[0].name)
+                    await renameMember(member, u);
                 }
 
                 log(`${indexText} ${tag} has been updated`);
@@ -162,8 +163,9 @@ export async function changeRoleAndName(member: GuildMember, listStudents: any =
     }
 }
 
-// Rename user to [Prénom NOM - Role]
-export async function renameMember(member: any, userSite: any, roleName: any) {
+// Rename user to [Prénom NOM - Role] now replaced by [Prénom NOM]
+// export async function renameMember(member: any, userSite: any, roleName: any) {
+export async function renameMember(member: any, userSite: any) {
     let firstName = userSite.first_name
         .toLowerCase()
         .replace(/\w\S*/g, (w: any) => w.replace(/^\w/, (c: any) => c.toUpperCase()));

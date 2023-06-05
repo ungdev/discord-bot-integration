@@ -35,7 +35,8 @@ export default (client: Client): void => {
 
                 const userSite = listStudents.filter((o: any) => o.discord === tag);
                 if (userSite.length !== 0) {
-                    renameMember(newMember, userSite[0], change.name);
+                    // renameMember(newMember, userSite[0], change.name);
+                    renameMember(newMember, userSite[0]);
                 }
             }
         }
