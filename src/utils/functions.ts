@@ -95,7 +95,8 @@ export async function addRole(roleName: string) {
 export async function changeRoleAndName(member: GuildMember, listStudents: any = null, isSync = false, indexText = '') {
     const { user } = member;
     if (!user.bot) {
-        const tag = `${user.username}#${user.discriminator}`;
+        // If the discriminator is "0", the user has made the migration to the new system of discord
+        const tag = user.discriminator === '0' ? user.username : `${user.username}#${user.discriminator}`;
 
         // Get students list from API if not already provided
         if (listStudents === null) {
