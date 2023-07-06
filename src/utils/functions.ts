@@ -171,7 +171,7 @@ export async function renameMember(member: any, userSite: any) {
         .toLowerCase()
         .replace(/\w\S*/g, (w: any) => w.replace(/^\w/, (c: any) => c.toUpperCase()));
     // Remove too long last name
-    const lastName = userSite.last_name.toUpperCase().split(/[-\s]/)[0];
+    const lastName = userSite.last_name.toUpperCase(); //.split(/[-\s]/)[0];
 
     // Je veux bien dev le bot de l'inté par contre on respecte mon prénom, merci
     if (firstName === 'Noe') firstName = 'Noé';
