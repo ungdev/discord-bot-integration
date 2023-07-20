@@ -38,6 +38,7 @@ export async function addCategory(name: string) {
 
 // Create a Channel and add it to a Category
 export async function addChannel(team: any, cat: any) {
+    log('Start channel creation for team ' + team.name);
     const permissionOverwrites = [] as any;
 
     // Modify permissions for the team role and disable view for everyone
@@ -49,17 +50,20 @@ export async function addChannel(team: any, cat: any) {
             allow: PermissionsBitField.Flags.ViewChannel,
         });
     }),
-        permissionOverwrites.push({
-            id: global.data.guild?.roles.cache.find(
-                (rol: any) => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim(),
-            )?.id,
-            allow: PermissionsBitField.Flags.ViewChannel,
-        });
+
+    permissionOverwrites.push({
+        id: global.data.guild?.roles.cache.find(
+            (rol: any) => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim(),
+        )?.id,
+        allow: PermissionsBitField.Flags.ViewChannel,
+    });
 
     permissionOverwrites.push({
         id: global.data.guild?.id,
         deny: PermissionsBitField.Flags.ViewChannel,
     });
+
+    log("Permission overwrites: " + permissionOverwrites + " for team " + team.name);
 
     const channel = await global.data.guild?.channels.create({
         name: team.name,
@@ -69,6 +73,8 @@ export async function addChannel(team: any, cat: any) {
     });
 
     await channel?.setParent(cat.find((c: any) => c.name.toLowerCase() === team.faction.name.toLowerCase()).id);
+
+    log('Channel created for team ' + team.name);
 }
 
 // Create a Guild Role

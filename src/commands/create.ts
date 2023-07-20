@@ -31,7 +31,6 @@ async function create() {
 
     await Promise.all(
         global.data.teams.map(async (team: any) => {
-            log(`Test 2`);
             if (team.name !== undefined && team.name !== null && team.name !== '') {
                 log(`Team ${team.name}`);
                 await addRole(team.name);
