@@ -30,7 +30,6 @@ async function create() {
     );
 
     await Promise.all(
-        log(`Test 1`);
         global.data.teams.map(async (team: any) => {
             log(`Test 2`);
             if (team.name !== undefined && team.name !== null && team.name !== '') {
