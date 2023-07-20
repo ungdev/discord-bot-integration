@@ -1,3 +1,5 @@
+import { log } from "./logger";
+
 const axios = require('axios');
 const httpBuildQuery = require('http-build-query');
 
@@ -27,6 +29,8 @@ export async function callApi(teamId: number | null = null) {
             headers: { Authorization: `Bearer ${global.data.bearer.access_token}` },
         };
     }
+
+    log(global.data.bearerConfig);
 
     if (global.data.factions === null || global.data.factions.length === 0) {
         global.data.factions = (
