@@ -8,8 +8,8 @@ declare global {
         factions: any;
         teams: any;
         rolesList: List<Role>;
-        rolesCreatedIds: any;
-        factionsCategoryIds: any;
+        rolesCreatedIds: List<bigint>;
+        factionsCategoryIds: List<bigint>;
     };
     var db: any;
 }
