@@ -21,16 +21,8 @@ export async function addCategory(name: string) {
     const category = await global.data.guild?.channels.create({
         name: name,
         type: ChannelType.GuildCategory,
-        // permissionOverwrites: [
-        //     'VIEW_CHANNEL',
-        //     'SEND_MESSAGES',
-        //     'READ_MESSAGES',
-        //     'MANAGE_MESSAGES',
-        //     'MANAGE_ROLES',
-        //     'MANAGE_CHANNELS',
-        // ],
         position: 0,
-    });
+    }).catch(err => error("Failed to create category " + name + " :\n" + err));
     global.data.factionsCategoryIds.push(category?.id);
     global.db.set('factions', global.data.factionsCategoryIds);
     return category;
@@ -47,7 +39,7 @@ export async function addChannel(team: any, cat: any) {
     listRolesCanView.map(async (role: any) => {
         permissionOverwrites.push({
             id: global.data.guild?.roles.cache.find((rol: any) => rol.name === role.toLowerCase())?.id,
-            allow: PermissionsBitField.Flags.ViewChannel,
+            allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
         });
 
         if (global.data.guild?.roles.cache.find((rol: any) => rol.name.toLowerCase() === role.toLowerCase())?.id === undefined) {
@@ -59,7 +51,7 @@ export async function addChannel(team: any, cat: any) {
         id: global.data.guild?.roles.cache.find(
             (rol: any) => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim(),
         )?.id,
-        allow: PermissionsBitField.Flags.ViewChannel,
+        allow:  [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
     });
 
     if(global.data.guild?.roles.cache.find((rol: any) => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim())?.id === undefined){
@@ -68,7 +60,7 @@ export async function addChannel(team: any, cat: any) {
 
     permissionOverwrites.push({
         id: global.data.guild?.id,
-        deny: PermissionsBitField.Flags.ViewChannel,
+        deny: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
     });
 
     if(global.data.guild?.id === undefined){
@@ -79,9 +71,9 @@ export async function addChannel(team: any, cat: any) {
         name: team.name,
         type: ChannelType.GuildText,
         permissionOverwrites: permissionOverwrites,
-    });
+    }).catch(err => error("Failed to create channel " + team.name + " :\n" + err));
 
-    await channel?.setParent(cat.find((c: any) => c.name.toLowerCase() === team.faction.name.toLowerCase()).id);
+    await channel?.setParent(cat.find((c: any) => c.name.toLowerCase() === team.faction.name.toLowerCase()).id).catch(err => error("Failed to set parent for channel " + team.name + " :\n" + err));
 
     log('Channel created for team ' + team.name);
 }
