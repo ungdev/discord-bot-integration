@@ -63,12 +63,11 @@ export async function addChannel(team: any, cat: any) {
         deny: PermissionsBitField.Flags.ViewChannel,
     });
 
-    log("Permission overwrites for team " + team + ": ");
+    log("Permission overwrites for team " + team.name + ": ");
 
     permissionOverwrites.forEach(element => {
-        log(JSON.stringify(element));
+        log(JSON.stringify(element.id));
     });
-
 
     const channel = await global.data.guild?.channels.create({
         name: team.name,
