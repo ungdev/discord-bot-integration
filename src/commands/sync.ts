@@ -29,7 +29,7 @@ async function sync() {
 
     await Promise.all(
         membersArray.map(async (member: GuildMember, index: number) => {
-            await changeRoleAndName(member, listStudents, true, '[' + index+1 + '/' + membersArray.length + ']');
+            await changeRoleAndName(member, listStudents, true, '[' + (index + 1) + '/' + membersArray.length + ']');
         }),
     ).catch((err) => {
         error('Sync roles and names failed!\n ' + err);
