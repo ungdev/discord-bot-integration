@@ -74,7 +74,6 @@ export async function addChannel(team: any, cat: any) {
         name: team.name,
         type: ChannelType.GuildText,
         permissionOverwrites: permissionOverwrites,
-        position: 0,
     });
 
     await channel?.setParent(cat.find((c: any) => c.name.toLowerCase() === team.faction.name.toLowerCase()).id);
