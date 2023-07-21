@@ -66,7 +66,7 @@ export async function addChannel(team: any, cat: any) {
     log("Permission overwrites for team " + team + ": ");
 
     permissionOverwrites.forEach(element => {
-        log(element);
+        log(JSON.stringify(element));
     });
 
 
