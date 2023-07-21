@@ -49,6 +49,12 @@ export async function addChannel(team: any, cat: any) {
             id: global.data.guild?.roles.cache.find((rol: any) => rol.name === role)?.id,
             allow: PermissionsBitField.Flags.ViewChannel,
         });
+
+        if (global.data.guild?.roles.cache.find((rol: any) => rol.name === role)?.id !== undefined) {
+            log("Role " + role + " has an id of " + global.data.guild?.roles.cache.find((rol: any) => rol.name === role)?.id.toString());
+        }else{
+            error("Role " + role + " has no id");
+        }
     }),
 
     permissionOverwrites.push({
@@ -58,16 +64,24 @@ export async function addChannel(team: any, cat: any) {
         allow: PermissionsBitField.Flags.ViewChannel,
     });
 
+    if(global.data.guild?.roles.cache.find((rol: any) => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim())?.id !== undefined){
+        log("Role " + team.name + " has an id of " + global.data.guild?.roles.cache.find((rol: any) => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim())?.id.toString());
+    }else{
+        error("Role " + team.name + " has no id");
+    }
+
     permissionOverwrites.push({
         id: global.data.guild?.id,
         deny: PermissionsBitField.Flags.ViewChannel,
     });
 
-    log("Permission overwrites for team " + team.name + ": ");
+    if(global.data.guild?.id !== undefined){
+        log("Guild has an id of " + global.data.guild?.id.toString());
+    }else{
+        error("Guild has no id");
+    }
 
-    permissionOverwrites.forEach(element => {
-        log(element.id.toString());
-    });
+    log("Permission overwrites for team " + team.name + ": ");
 
     const channel = await global.data.guild?.channels.create({
         name: team.name,
