@@ -66,7 +66,7 @@ export async function addChannel(team: any, cat: any) {
     log("Permission overwrites for team " + team.name + ": ");
 
     permissionOverwrites.forEach(element => {
-        log(JSON.stringify(element.id));
+        log(element.id.toString());
     });
 
     const channel = await global.data.guild?.channels.create({
