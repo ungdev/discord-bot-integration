@@ -38,14 +38,14 @@ export async function addChannel(team: any, cat: any) {
 
     listRolesCanView.map(async (role: any) => {
         permissionOverwrites.push({
-            id: global.data.guild?.roles.cache.find((rol: any) => rol.name === role.toLowerCase())?.id,
+            id: global.data.guild?.roles.cache.find((rol: any) => rol.name.toLowerCase() === role.toLowerCase())?.id,
             allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
         });
 
         if (global.data.guild?.roles.cache.find((rol: any) => rol.name.toLowerCase() === role.toLowerCase())?.id === undefined) {
             error("Role " + role + " has no id");
         }
-    }),
+    })
 
     permissionOverwrites.push({
         id: global.data.guild?.roles.cache.find(
