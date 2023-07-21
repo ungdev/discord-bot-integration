@@ -6,7 +6,7 @@ import { Command } from '../command';
 
 export const Create: Command = {
     name: 'create',
-    description: 'Create roles and channels for each teams',
+    description: 'Create roles and channels for each team',
     type: ApplicationCommandType.ChatInput,
     run: async (client: Client, interaction: CommandInteraction) => {
         log('Creation of channels and roles started!');

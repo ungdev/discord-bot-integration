@@ -1,4 +1,4 @@
-import { ChannelType, GuildMember, PermissionsBitField } from 'discord.js';
+import { ChannelType, GuildMember, OverwriteResolvable, PermissionsBitField, Role } from 'discord.js';
 import { callApi } from './api';
 import { log, error } from './logger';
 
@@ -31,31 +31,45 @@ export async function addCategory(name: string) {
 // Create a Channel and add it to a Category
 export async function addChannel(team: any, cat: any) {
     log('Start channel creation for team ' + team.name);
-    const permissionOverwrites = [] as any;
+    const permissionOverwrites = [] as Array<OverwriteResolvable>;
 
     // Modify permissions for the team role and disable view for everyone
     const listRolesCanView = [process.env.COORDS_ROLE, process.env.CE_RESPO, process.env.DEV_ROLE];
 
-    listRolesCanView.map(async (role: any) => {
+    listRolesCanView.map(async (role: string | undefined) => {
+        if(role === undefined) {
+            log("Role is undefined");
+            return;
+        }
+
+        const roleToAdd: Role | undefined = global.data.guild?.roles.cache.find((rol: Role) => rol.name.toLowerCase() === role.toLowerCase());
+
+        if (roleToAdd === undefined) {
+            error("Role " + role + " has no id");
+            return;
+        }
+        
         permissionOverwrites.push({
-            id: global.data.guild?.roles.cache.find((rol: any) => rol.name.toLowerCase() === role.toLowerCase())?.id,
+            id: roleToAdd,
             allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
         });
+    });
 
-        if (global.data.guild?.roles.cache.find((rol: any) => rol.name.toLowerCase() === role.toLowerCase())?.id === undefined) {
-            error("Role " + role + " has no id");
-        }
-    })
+    const roleToAdd: Role | undefined = global.data.guild?.roles.cache.find((rol: Role) => (rol.name.toLowerCase().trim() === (team.name as string).toLowerCase().trim()));
+
+    if(roleToAdd === undefined){
+        error("Role " + team.name + " has no id");
+        return;
+    }
 
     permissionOverwrites.push({
-        id: global.data.guild?.roles.cache.find(
-            (rol: any) => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim(),
-        )?.id,
+        id: roleToAdd,
         allow:  [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
     });
 
-    if(global.data.guild?.roles.cache.find((rol: any) => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim())?.id === undefined){
-        error("Role " + team.name + " has no id");
+    if(global.data.guild?.id === undefined){
+        error("Guild has no id");
+        return;
     }
 
     permissionOverwrites.push({
@@ -63,17 +77,13 @@ export async function addChannel(team: any, cat: any) {
         deny: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
     });
 
-    if(global.data.guild?.id === undefined){
-        error("Guild has no id");
-    }
-
-    const channel = await global.data.guild?.channels.create({
+    await global.data.guild?.channels.create({
         name: team.name,
         type: ChannelType.GuildText,
         permissionOverwrites: permissionOverwrites,
+        parent: cat.find((c: any) => c.name.toLowerCase() === team.faction.name.toLowerCase()).id,
+        position: 0,
     }).catch(err => error("Failed to create channel " + team.name + " :\n" + err));
-
-    await channel?.setParent(cat.find((c: any) => c.name.toLowerCase() === team.faction.name.toLowerCase()).id).catch(err => error("Failed to set parent for channel " + team.name + " :\n" + err));
 
     log('Channel created for team ' + team.name);
 }

@@ -30,8 +30,6 @@ export async function callApi(teamId: number | null = null) {
         };
     }
 
-    log(global.data.bearerConfig);
-
     if (global.data.factions === null || global.data.factions.length === 0) {
         global.data.factions = (
             await axios.get(`${process.env.INTE_BASE_URL}/api/factions`, global.data.bearerConfig)
