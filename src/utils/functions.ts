@@ -44,15 +44,13 @@ export async function addChannel(team: any, cat: any) {
     // Modify permissions for the team role and disable view for everyone
     const listRolesCanView = [process.env.COORDS_ROLE, process.env.CE_RESPO, process.env.DEV_ROLE];
 
-    listRolesCanView.map(async (role) => {
+    listRolesCanView.map(async (role: any) => {
         permissionOverwrites.push({
-            id: global.data.guild?.roles.cache.find((rol: any) => rol.name === role)?.id,
+            id: global.data.guild?.roles.cache.find((rol: any) => rol.name === role.toLowerCase())?.id,
             allow: PermissionsBitField.Flags.ViewChannel,
         });
 
-        if (global.data.guild?.roles.cache.find((rol: any) => rol.name === role)?.id !== undefined) {
-            log("Role " + role + " has an id of " + global.data.guild?.roles.cache.find((rol: any) => rol.name === role)?.id.toString());
-        }else{
+        if (global.data.guild?.roles.cache.find((rol: any) => rol.name.toLowerCase() === role.toLowerCase())?.id === undefined) {
             error("Role " + role + " has no id");
         }
     }),
@@ -64,9 +62,7 @@ export async function addChannel(team: any, cat: any) {
         allow: PermissionsBitField.Flags.ViewChannel,
     });
 
-    if(global.data.guild?.roles.cache.find((rol: any) => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim())?.id !== undefined){
-        log("Role " + team.name + " has an id of " + global.data.guild?.roles.cache.find((rol: any) => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim())?.id.toString());
-    }else{
+    if(global.data.guild?.roles.cache.find((rol: any) => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim())?.id === undefined){
         error("Role " + team.name + " has no id");
     }
 
@@ -75,13 +71,9 @@ export async function addChannel(team: any, cat: any) {
         deny: PermissionsBitField.Flags.ViewChannel,
     });
 
-    if(global.data.guild?.id !== undefined){
-        log("Guild has an id of " + global.data.guild?.id.toString());
-    }else{
+    if(global.data.guild?.id === undefined){
         error("Guild has no id");
     }
-
-    log("Permission overwrites for team " + team.name + ": ");
 
     const channel = await global.data.guild?.channels.create({
         name: team.name,
