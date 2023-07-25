@@ -11,8 +11,8 @@ export async function addTeamRole(teamId: number) {
     const team = await callApi(teamId);
 
     return [
-        global.data.guild?.roles.cache.find((rol: any) => rol.name === team.name),
-        global.data.guild?.roles.cache.find((rol: any) => rol.name === team.faction_name),
+        global.data.guild?.roles.cache.find((rol: any) => rol.name.toLowerCase().trim() === team.name.toLowerCase().trim()),
+        global.data.guild?.roles.cache.find((rol: any) => rol.name.toLowerCase().trim() === team.faction_name.toLowerCase().trim()),
     ];
 }
 
