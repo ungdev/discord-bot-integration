@@ -1,4 +1,6 @@
 // Load the .env file
+import path from "path";
+
 require('dotenv').config();
 
 // Utils
@@ -66,9 +68,17 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 
 // When the client is ready, run this code (only once)
 client.once('ready', async () => {
+    const logsDir = path.join(__dirname, 'data')
+    const logsPath = path.join(logsDir, 'logs.txt')
+
+    // Create 'data' directory if it does not exist
+    if (!fs.existsSync(logsDir)) {
+        fs.mkdirSync(logsDir, { recursive: true });
+    }
+
     // Create logs.txt file if not exists
-    if (!fs.existsSync(__dirname + '/data/logs.txt')) {
-        fs.writeFile(__dirname + '/data/logs.txt', '', function (err) {
+    if (!fs.existsSync(logsPath)) {
+        fs.writeFile(logsPath, '', function (err) {
             if (err) {
                 error(`${err}`);
             }
@@ -125,6 +135,7 @@ guildMemberAdd(client);
 guildMemberUpdate(client);
 
 // Login to Discord with your client's token
+console.log("login with token: " + process.env.BOT_TOKEN)
 client.login(process.env.BOT_TOKEN);
 
 // Process events on unhandledException
