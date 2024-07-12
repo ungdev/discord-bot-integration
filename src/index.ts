@@ -95,6 +95,8 @@ client.once('ready', async () => {
         global.data.guild.roles.cache.find((rol: any) => rol.name === process.env.ORGA_ROLE),
     ];
 
+    global.data.factionsCategoryIds = ["1261293675548377169"];
+
 
     //Commands
     global.commands = new Collection()

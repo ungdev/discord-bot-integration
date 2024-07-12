@@ -1,26 +1,25 @@
-import { error, log } from '../utils/logger';
-import { CommandInteraction, Client, GuildMember, Role, ApplicationCommandType, CategoryChannel } from 'discord.js';
-import { Command } from '../command';
+import {CategoryChannel, GuildMember, Interaction, Role, SlashCommandBuilder} from "discord.js";
+import {log, error} from "../utils/logger";
 
-export const Reset: Command = {
-    name: 'reset',
-    description: 'Reset roles given by the bot, roles and channels',
-    type: ApplicationCommandType.ChatInput,
-    run: async (client: Client, interaction: CommandInteraction) => {
+export const ResetCommand: { data: SlashCommandBuilder; execute(interaction): Promise<void> } = {
+    data: new SlashCommandBuilder()
+        .setName('reset')
+        .setDescription('Reset roles given by the bot, roles and channels'),
+    async execute(interaction) {
         log('Reset started!');
         await interaction.reply('Reset in progress...');
-        await reset();
+        await reset(interaction);
         await interaction.followUp({ content: 'Reset done!' });
         log('Reset done!');
     },
 };
 
-export async function reset() {
+export async function reset(interaction: Interaction) {
     // Get all members of the guild
-    const members = await global.data.guild?.members.fetch();
+    const members = await interaction.guild?.members.cache;
     if (members === undefined) return;
 
-    log(`Reset: Found ${members?.size} members in the guild!`);
+    log(`Reset: Found ${members.size} members in the guild!`);
     await Promise.all(
         members.map(async (member: GuildMember) => {
             // Get all roles of the member
@@ -42,9 +41,11 @@ export async function reset() {
 
     log(`Reset: Deleting ${global.data.factionsCategoryIds.length} categories...`);
     await Promise.all(
-        global.data.factionsCategoryIds.map(async (categoryId: number) => {
+        global.data.factionsCategoryIds.map(async (categoryId: string) => {
             // Get category
-            const category = (await global.data.guild?.channels.cache.get(categoryId.toString())) as CategoryChannel;
+            console.log("catId:" + categoryId)
+            const category = interaction.guild?.channels.cache.get(categoryId) as CategoryChannel;
+            console.log(category)
             if (category !== undefined && category !== null) {
                 log(`Reset: Deleting category ${category.name}...`);
                 // Delete all channels
@@ -77,10 +78,4 @@ export async function reset() {
             }
         }),
     );
-
-    global.data.factionsCategoryIds = [];
-    global.data.rolesCreatedIds = [];
-    global.db.set('factions', []);
-    global.db.set('roles', []);
-    global.db.sync();
 }
