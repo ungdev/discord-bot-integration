@@ -1,19 +1,28 @@
 import { Client, Interaction } from 'discord.js';
-import { Commands } from '../command';
 
 export default (client: Client): void => {
     // Watch for commands
     client.on('interactionCreate', async (interaction: Interaction) => {
-        if (interaction.guild === null || interaction.guild.id !== global.data.guild?.id) return;
 
-        if (interaction.isCommand()) {
-            const slashCommand = Commands.find((c: any) => c.name === interaction.commandName);
-            if (!slashCommand) {
-                interaction.reply({ content: 'An error has occurred' });
-                return;
-            }
+        if (!interaction.isChatInputCommand()) return
 
-            slashCommand.run(client, interaction);
+        const command = global.commands.get(interaction.commandName);
+
+        if (!command) {
+            console.error(`No command matching ${interaction.commandName} was found.`);
+            return;
         }
+
+        try {
+            await command.execute(interaction);
+        } catch (error) {
+            console.error(error);
+            if (interaction.replied || interaction.deferred) {
+                await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+            } else {
+                await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+            }
+        }
+
     });
 };
