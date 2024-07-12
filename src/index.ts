@@ -6,18 +6,16 @@ require('dotenv').config();
 // Utils
 import fs from 'fs';
 
+import { Routes } from 'discord-api-types/v10';
+
 // Discord
-import { Client, GatewayIntentBits, Guild } from 'discord.js';
+import {Client, Collection, GatewayIntentBits, Guild, REST} from 'discord.js';
 import { error, log } from './utils/logger';
 
 // Commands
 import { Commands } from './command';
 
-// Database
-import jsonDb from 'simple-json-db';
-
 // Global variables
-global.db = new jsonDb(__dirname + '/data/storage.json');
 
 global.data = {
     bearer: null,
@@ -35,7 +33,9 @@ import express, { Request, Response } from 'express';
 import interactionCreate from './listeners/interactionCreate';
 import guildMemberAdd from './listeners/guildMemberAdd';
 import guildMemberUpdate from './listeners/guildMemberUpdate';
-import { reset } from './commands/reset';
+import {init} from "./database/init";
+import {roleSchema} from "./schemas/role.schema";
+import {eq} from "drizzle-orm";
 const app = express();
 const port = 3000;
 
@@ -64,7 +64,7 @@ app.get('/logs', (req: Request, res: Response) => {
 app.listen(port);
 
 // Create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 // When the client is ready, run this code (only once)
 client.once('ready', async () => {
@@ -85,37 +85,9 @@ client.once('ready', async () => {
         });
     }
 
-    // Create storage.json file if not exists
-    if (!fs.existsSync(__dirname + '/data/storage.json')) {
-        fs.writeFile(__dirname + '/data/storage.json', '', function (err) {
-            if (err) {
-                error(`${err}`);
-            }
-        });
-    }
-
     log('Ready!');
 
-    // Sync JSON DB with local file
-    try {
-        global.db.sync();
-    } catch (e) {
-        error('Error while syncing JSON DB: ' + e);
-    }
-
-    // Register commands
-    await client.application?.commands.set(Commands);
-
     global.data.guild = client.guilds.cache.get(process.env.GUILD_ID || '') as Guild;
-
-    client.user?.setPresence({
-        activities: [
-            {
-                name: process.env.BOT_ACTIVITY,
-            },
-        ],
-        status: 'online',
-    });
 
     global.data.rolesList = [
         global.data.guild.roles.cache.find((rol: any) => rol.name === process.env.NEWCOMER_ROLE),
@@ -123,8 +95,63 @@ client.once('ready', async () => {
         global.data.guild.roles.cache.find((rol: any) => rol.name === process.env.ORGA_ROLE),
     ];
 
-    global.data.rolesCreatedIds = global.db.has('roles') ? global.db.get('roles') : [];
-    global.data.factionsCategoryIds = global.db.has('factions') ? global.db.get('factions') : [];
+
+    //Commands
+    global.commands = new Collection()
+
+    for (let command of Commands) {
+        if ('data' in command && 'execute' in command) {
+            global.commands.set(command.data.name, command);
+        } else {
+            console.log(`[WARNING] The command ${command} is missing a required "data" or "execute" property.`);
+        }
+    }
+
+    // and deploy your commands!
+    await (async () => {
+        const update = process.env.UPDATE_SLASH as string
+        //If env var "UPDATE_SLASH" is true, we send a request to update slash commands
+        if (!update || update !== "true"){
+            return
+        }
+
+        const token = process.env.BOT_TOKEN as string;
+        const clientId = process.env.CLIENT_ID as string;
+        const guildId = process.env.GUILD_ID as string;
+
+        // Construct and prepare an instance of the REST module
+        const rest = new REST().setToken(token);
+
+        const commands: any[] = []
+        try {
+            console.log(`Started refreshing ${Commands.length} application (/) commands.`);
+
+            // The put method is used to fully refresh all commands in the guild with the current set
+            for (let command of Commands) {
+                console.log(command.data.name)
+                const t = command.data.toJSON()
+                commands.push(t)
+            }
+            const data: any = await rest.put(
+                Routes.applicationGuildCommands(clientId, guildId),
+                {body: commands},
+            );
+
+            console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+        } catch (error) {
+            // And of course, make sure you catch and log any errors!
+            console.error(error);
+        }
+    })();
+
+    client.user?.setPresence({
+        activities: [
+            {
+                name: process.env.BOT_ACTIVITY as string,
+            },
+        ],
+        status: 'online',
+    });
 });
 
 // Add commands
@@ -135,8 +162,9 @@ guildMemberAdd(client);
 guildMemberUpdate(client);
 
 // Login to Discord with your client's token
-console.log("login with token: " + process.env.BOT_TOKEN)
 client.login(process.env.BOT_TOKEN);
+
+init()
 
 // Process events on unhandledException
 process.on('uncaughtException', function (err) {
