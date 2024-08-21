@@ -5,8 +5,8 @@ export const teamSchema = pgTable('team', {
     id: serial('id').primaryKey(),
     isOfficial: boolean('isOfficial').notNull(),
     timeCode: bigint('timeCode', { mode: 'number' }),
-    name: text('team_name').notNull().unique(),
-    faction: integer('city_id').references(() => factionSchema.id)
+    name: text('name').notNull().unique(),
+    faction: integer('faction').references(() => factionSchema.id)
 });
 
 export type Team = typeof teamSchema.$inferInsert;

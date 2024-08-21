@@ -19,3 +19,7 @@ export function isOrga(interaction: Interaction): boolean {
 export function isCe(interaction: Interaction): boolean {
     return hasRole(interaction, [process.env.CE_ROLE as string, process.env.ORGA_ROLE as string, process.env.COORDS_ROLE as string])
 }
+
+export function isOnlyCe(interaction: Interaction): boolean {
+    return hasRole(interaction, [process.env.CE_ROLE as string])
+}

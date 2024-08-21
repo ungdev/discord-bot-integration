@@ -9,7 +9,7 @@ import fs from 'fs';
 import { Routes } from 'discord-api-types/v10';
 
 // Discord
-import {Client, Collection, GatewayIntentBits, Guild, REST} from 'discord.js';
+import {ChannelType, Client, ClientApplication, Collection, GatewayIntentBits, Guild, REST} from 'discord.js';
 import { error, log } from './utils/logger';
 
 // Commands
@@ -41,10 +41,6 @@ const port = 3000;
 
 app.get('/', (req: Request, res: Response) => {
     res.send('OK');
-});
-
-app.get('/db', (req: Request, res: Response) => {
-    res.send(JSON.stringify(global.db.JSON()));
 });
 
 // Temporary code to get logs
@@ -87,16 +83,6 @@ client.once('ready', async () => {
 
     log('Ready!');
 
-    global.data.guild = client.guilds.cache.get(process.env.GUILD_ID || '') as Guild;
-
-    global.data.rolesList = [
-        global.data.guild.roles.cache.find((rol: any) => rol.name === process.env.NEWCOMER_ROLE),
-        global.data.guild.roles.cache.find((rol: any) => rol.name === process.env.CE_ROLE),
-        global.data.guild.roles.cache.find((rol: any) => rol.name === process.env.ORGA_ROLE),
-    ];
-
-    global.data.factionsCategoryIds = ["1261293675548377169"];
-
 
     //Commands
     global.commands = new Collection()
@@ -107,6 +93,14 @@ client.once('ready', async () => {
         } else {
             console.log(`[WARNING] The command ${command} is missing a required "data" or "execute" property.`);
         }
+    }
+
+    const guild = client.guilds.cache.get(process.env.GUILD_ID as string);
+
+    //load log channel
+    global.log = await guild?.channels.cache.find(channel => channel.name === process.env.LOG_CHANNEL as string && channel.type === ChannelType.GuildText);
+    if(!global.log) {
+        console.log("Did not find the log chanel : '" + process.env.LOG_CHANNEL + "'")
     }
 
     // and deploy your commands!

@@ -39,6 +39,7 @@ export const userSchema = pgTable("user", {
   branch: text("branch"),
   birthday: date("birthday"),
   contact: text("contact"),
+  discord_id: text("discord_id"),
   connection_number: integer("connection_num").notNull(),
   permission: permission('permission').notNull(),
   password: text("password").notNull(),

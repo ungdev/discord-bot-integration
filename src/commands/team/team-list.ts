@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, EmbedBuilder } from '@discordjs/builders';
-import {SlashCommandSubcommandsOnlyBuilder} from "discord.js";
+import {Interaction, SlashCommandSubcommandsOnlyBuilder} from "discord.js";
 import {db} from "../../database/db";
 import {teamSchema} from "../../schemas/team.schema";
 import {eq} from "drizzle-orm";
@@ -7,9 +7,10 @@ import {createError} from "../utils/error-embed";
 import {isCe, isOrga} from "../utils/assert-role";
 
 export async function list(interaction) {
-    const teams = await db.select().from(teamSchema);
 
-    if(!isCe(interaction) && !isOrga(interaction)) return interaction.reply({embeds: [createError("You don't have the permission to do this command.")]});
+    if(!isCe(interaction)) return interaction.reply({embeds: [createError("You don't have the permission to do this command.")]});
+
+    const teams = await db.select().from(teamSchema);
 
     if (!teams || teams.length === 0) return interaction.reply({ embeds: [createError("No teams found.")] });
 
